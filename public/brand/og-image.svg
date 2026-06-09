@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <radialGradient id="bg1" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(240 95) scale(520 380)">
+      <stop stop-color="#172554" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#172554" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="bg2" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1020 535) scale(420 300)">
+      <stop stop-color="#0f172a" stop-opacity="0.7"/>
+      <stop offset="1" stop-color="#0f172a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="mark" x1="486" y1="171" x2="714" y2="399" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1e40af"/>
+      <stop offset="0.55" stop-color="#172554"/>
+      <stop offset="1" stop-color="#050a12"/>
+    </linearGradient>
+    <radialGradient id="markGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(552 219) scale(90)">
+      <stop stop-color="#60a5fa" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#60a5fa" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="#050a12"/>
+  <rect width="1200" height="630" fill="url(#bg1)"/>
+  <rect width="1200" height="630" fill="url(#bg2)"/>
+  <rect x="526" y="191" width="148" height="148" rx="30" fill="url(#mark)"/>
+  <rect x="526" y="191" width="148" height="148" rx="30" fill="url(#markGlow)"/>
+  <path d="M600 309s32-16 32-40V229l-32-12-32 12v40c0 24 32 40 32 40z" fill="rgba(147,197,253,0.2)" stroke="#dbeafe" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="600" y="410" text-anchor="middle" fill="#ffffff" font-family="Georgia, 'Times New Roman', serif" font-size="72" letter-spacing="-1.5">Trust Hub</text>
+  <text x="600" y="462" text-anchor="middle" fill="rgba(255,255,255,0.45)" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="500" letter-spacing="3.1">VENDOR RISK INTELLIGENCE PLATFORM</text>
+</svg>

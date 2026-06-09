@@ -1,0 +1,2 @@
+ALTER TABLE assessments ADD COLUMN IF NOT EXISTS questionnaire_token TEXT UNIQUE;
+ALTER TABLE assessments ADD COLUMN IF NOT EXISTS responses JSONB;

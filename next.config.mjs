@@ -1,0 +1,23 @@
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  async redirects() {
+    return [
+      {
+        source: "/recommendations",
+        destination: "/remediations",
+        permanent: true,
+      },
+      {
+        source: "/remediation",
+        destination: "/remediations",
+        permanent: true,
+      },
+      {
+        source: "/onboarding",
+        destination: "/risk-assessment",
+        permanent: true,
+      },
+    ];
+  },
+};
+export default nextConfig;

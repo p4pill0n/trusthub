@@ -49,8 +49,8 @@ export const metadata: Metadata = {
       {
         url: "/opengraph-image.png",
         width: 1200,
-        height: 630,
-        alt: "Trust Hub — Vendor Risk Intelligence Platform",
+        height: 1200,
+        alt: "Trust Hub",
       },
     ],
   },

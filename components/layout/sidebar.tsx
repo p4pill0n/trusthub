@@ -32,7 +32,7 @@ const navSections: NavSection[] = [
     items: [
       { href: "/", label: "Dashboard", icon: LayoutDashboard },
       { href: "/vendors", label: "Vendors", icon: Building2 },
-      { href: "/risk-assessment", label: "Risk Assessment", icon: ClipboardList },
+      { href: "/risk-assessment", label: "Risk Assessments", icon: ClipboardList },
       { href: "/fourth-parties", label: "Fourth Parties", icon: Layers },
       { href: "/remediations", label: "Remediations", icon: Lightbulb },
     ],
@@ -47,6 +47,16 @@ const navSections: NavSection[] = [
   },
 ];
 
+function LinkedInIcon() {
+  return (
+    <span className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[4px] bg-[#0A66C2] text-white shadow-[0_2px_6px_rgba(10,102,194,0.35)] ring-1 ring-white/10 transition-all group-hover:bg-[#004182] group-hover:shadow-[0_2px_8px_rgba(10,102,194,0.45)]">
+      <svg viewBox="0 0 24 24" className="h-2.5 w-2.5" fill="currentColor" aria-hidden>
+        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 1 1 0-4.124 2.062 2.062 0 0 1 0 4.124zM7.119 20.452H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+      </svg>
+    </span>
+  );
+}
+
 function NavLink({ href, label, icon: Icon }: NavItem) {
   const pathname = usePathname();
   const isActive = href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -57,11 +67,14 @@ function NavLink({ href, label, icon: Icon }: NavItem) {
       className={cn(
         "flex items-center gap-3 rounded-md px-3 py-2.5 text-[13px] transition-colors",
         isActive
-          ? "bg-white font-medium text-neutral-900"
-          : "text-white/55 hover:bg-white/5 hover:text-white/90"
+          ? "bg-white font-medium text-neutral-900 shadow-sm"
+          : "font-medium text-white/85 hover:bg-white/10 hover:text-white"
       )}
     >
-      <Icon className="h-4 w-4 shrink-0" strokeWidth={isActive ? 2 : 1.5} />
+      <Icon
+        className={cn("h-4 w-4 shrink-0", isActive ? "text-neutral-900" : "text-white/80")}
+        strokeWidth={isActive ? 2 : 1.75}
+      />
       <span>{label}</span>
     </Link>
   );
@@ -99,7 +112,7 @@ export function Sidebar() {
         {navSections.map((section, index) => (
           <div key={section.title ?? index}>
             {section.title && (
-              <p className="mb-2 px-3 text-[10px] font-medium uppercase tracking-[0.12em] text-white/35">
+              <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/55">
                 {section.title}
               </p>
             )}
@@ -116,7 +129,15 @@ export function Sidebar() {
         <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-white/35">
           Your contact
         </p>
-        <p className="mt-1 text-[13px] font-medium text-white/75">Aurelien Gilles</p>
+        <a
+          href="https://www.linkedin.com/in/aureliengilles/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group mt-1.5 inline-flex items-center gap-2.5 text-[13px] font-medium text-white/75 transition-colors hover:text-white"
+        >
+          <span>Aurelien Gilles</span>
+          <LinkedInIcon />
+        </a>
       </div>
     </aside>
   );

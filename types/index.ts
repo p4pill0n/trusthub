@@ -97,6 +97,7 @@ export interface Remediation {
   status: RemediationStatus;
   due_date: string | null;
   owner: string | null;
+  evidence: string | null;
   user_id?: string | null;
   vendors?: Pick<Vendor, "name" | "contact_email">;
 }

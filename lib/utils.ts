@@ -1,6 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { differenceInDays, format, isValid, parseISO } from "date-fns";
+import { differenceInDays, format, isValid, parseISO, startOfDay } from "date-fns";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -28,9 +28,8 @@ export function getReviewStatus(nextReviewDate: string | null): {
 } {
   if (!nextReviewDate) return { label: "—", variant: "none" };
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const reviewDate = parseISO(nextReviewDate);
+  const today = startOfDay(new Date());
+  const reviewDate = startOfDay(parseISO(nextReviewDate.slice(0, 10)));
   const days = differenceInDays(reviewDate, today);
 
   if (days < 0) {
@@ -42,8 +41,8 @@ export function getReviewStatus(nextReviewDate: string | null): {
 export const RISK_COLORS = {
   Low: "#059669",
   Medium: "#d97706",
-  High: "#ea580c",
-  "Very High": "#b91c1c",
+  High: "#dc2626",
+  "Very High": "#a61e1e",
 } as const;
 
 export function getBitSightColor(score: number): string {

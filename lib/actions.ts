@@ -28,6 +28,7 @@ export async function createRemediation(data: {
   const { error } = await supabase.from("remediations").insert({
     ...data,
     status: "Open",
+    evidence: "Remediation not yet started. No fix actions documented.",
   });
   if (error) throw new Error(error.message);
   revalidatePath("/remediations");
@@ -66,6 +67,18 @@ export async function updateVendorStatus(id: string, status: VendorStatus) {
 }
 
 export async function launchAssessment(vendorId: string) {
+  const { data: existing, error: existingError } = await supabase
+    .from("assessments")
+    .select("id")
+    .eq("vendor_id", vendorId)
+    .in("status", ["Pending", "In Progress"])
+    .limit(1);
+
+  if (existingError) throw new Error(existingError.message);
+  if (existing && existing.length > 0) {
+    throw new Error("This vendor already has an open assessment.");
+  }
+
   const token = randomUUID();
   const { data, error } = await supabase
     .from("assessments")
@@ -123,5 +136,13 @@ export async function submitQuestionnaire(
   if (error) throw new Error(error.message);
 
   revalidatePath("/risk-assessment");
+  revalidatePath("/");
+}
+
+export async function deleteAssessment(id: string) {
+  const { error } = await supabase.from("assessments").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidatePath("/risk-assessment");
+  revalidatePath("/vendors");
   revalidatePath("/");
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { MoreHorizontal, Eye, ClipboardList, UserX } from "lucide-react";
+import { MoreHorizontal, Eye, UserX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,7 +13,7 @@ import {
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { RiskBadge, StatusBadge } from "@/components/shared/risk-badge";
 import { VendorAvatar } from "@/components/vendors/vendor-avatar";
-import { launchAssessment, updateVendorStatus } from "@/lib/actions";
+import { updateVendorStatus } from "@/lib/actions";
 import { formatDate } from "@/lib/utils";
 import type { Vendor } from "@/types";
 
@@ -24,12 +24,6 @@ interface VendorActionsProps {
 export function VendorActions({ vendor }: VendorActionsProps) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
-
-  function handleLaunchAssessment() {
-    startTransition(async () => {
-      await launchAssessment(vendor.id);
-    });
-  }
 
   function handleOffboard() {
     startTransition(async () => {
@@ -48,9 +42,6 @@ export function VendorActions({ vendor }: VendorActionsProps) {
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={() => setSheetOpen(true)}>
             <Eye className="mr-2 h-4 w-4" /> View
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleLaunchAssessment} disabled={isPending}>
-            <ClipboardList className="mr-2 h-4 w-4" /> Launch Assessment
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleOffboard} disabled={isPending} className="text-red-600">

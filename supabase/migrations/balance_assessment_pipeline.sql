@@ -2,14 +2,14 @@
 -- Keeps 8 overdue assessments KPI unchanged
 
 -- Overdue (8)
-UPDATE public.vendors SET last_review_date = '2026-02-08', next_review_date = '2026-05-08' WHERE id = 'a1000001-0000-4000-8000-000000000002';
-UPDATE public.vendors SET last_review_date = '2026-01-08', next_review_date = '2026-04-08' WHERE id = 'a1000001-0000-4000-8000-000000000003';
-UPDATE public.vendors SET last_review_date = '2025-12-08', next_review_date = '2026-03-08' WHERE id = 'a1000001-0000-4000-8000-000000000004';
-UPDATE public.vendors SET last_review_date = '2025-11-08', next_review_date = '2026-02-08' WHERE id = 'a1000001-0000-4000-8000-000000000008';
-UPDATE public.vendors SET last_review_date = '2025-10-10', next_review_date = '2026-01-10' WHERE id = 'a1000001-0000-4000-8000-00000000000c';
-UPDATE public.vendors SET last_review_date = '2025-09-22', next_review_date = '2025-12-22' WHERE id = 'a1000001-0000-4000-8000-00000000000d';
-UPDATE public.vendors SET last_review_date = '2025-08-18', next_review_date = '2025-11-18' WHERE id = 'a1000001-0000-4000-8000-000000000010';
-UPDATE public.vendors SET last_review_date = '2025-07-12', next_review_date = '2025-10-12' WHERE id = 'a1000001-0000-4000-8000-000000000016';
+UPDATE public.vendors SET last_review_date = '2026-02-08', next_review_date = '2026-05-24' WHERE id = 'a1000001-0000-4000-8000-000000000002';
+UPDATE public.vendors SET last_review_date = '2026-01-08', next_review_date = '2026-05-09' WHERE id = 'a1000001-0000-4000-8000-000000000003';
+UPDATE public.vendors SET last_review_date = '2025-12-08', next_review_date = '2026-04-24' WHERE id = 'a1000001-0000-4000-8000-000000000004';
+UPDATE public.vendors SET last_review_date = '2025-11-08', next_review_date = '2026-04-10' WHERE id = 'a1000001-0000-4000-8000-000000000008';
+UPDATE public.vendors SET last_review_date = '2025-10-10', next_review_date = '2026-03-26' WHERE id = 'a1000001-0000-4000-8000-00000000000c';
+UPDATE public.vendors SET last_review_date = '2025-09-22', next_review_date = '2026-03-17' WHERE id = 'a1000001-0000-4000-8000-00000000000d';
+UPDATE public.vendors SET last_review_date = '2025-08-18', next_review_date = '2026-02-28' WHERE id = 'a1000001-0000-4000-8000-000000000010';
+UPDATE public.vendors SET last_review_date = '2025-07-12', next_review_date = '2026-02-10' WHERE id = 'a1000001-0000-4000-8000-000000000016';
 
 -- Due within 30 days (5)
 UPDATE public.vendors SET last_review_date = '2026-03-20', next_review_date = '2026-06-20' WHERE id = 'a1000001-0000-4000-8000-000000000001';

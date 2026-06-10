@@ -18,10 +18,12 @@ import {
 } from "@/components/ui/table";
 import { RiskBadge } from "@/components/shared/risk-badge";
 import { RemediationStatusSelect } from "@/components/remediations/status-select";
+import { RemediationEvidenceDialog } from "@/components/remediations/remediation-evidence-dialog";
 import { NewRemediationModal } from "@/components/remediations/new-remediation-modal";
 import { VendorNameCell } from "@/components/vendors/vendor-name-cell";
+import { REMEDIATION_STATUS_LABELS } from "@/lib/remediation-status";
 import { formatDate } from "@/lib/utils";
-import type { Vendor, Remediation } from "@/types";
+import type { Vendor, Remediation, RemediationStatus } from "@/types";
 
 interface RemediationsClientProps {
   items: (Remediation & { vendors: { name: string; contact_email?: string } | null })[];
@@ -46,8 +48,10 @@ export function RemediationsClient({ items, vendors }: RemediationsClientProps) 
             <SelectTrigger className="w-36"><SelectValue placeholder="Status" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
-              {["Open", "In Progress", "Closed"].map((s) => (
-                <SelectItem key={s} value={s}>{s}</SelectItem>
+              {(["Open", "In Progress", "Closed"] as RemediationStatus[]).map((s) => (
+                <SelectItem key={s} value={s}>
+                  {REMEDIATION_STATUS_LABELS[s]}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -71,9 +75,10 @@ export function RemediationsClient({ items, vendors }: RemediationsClientProps) 
               <TableHead>Vendor</TableHead>
               <TableHead>Title</TableHead>
               <TableHead>Priority</TableHead>
-              <TableHead>Status</TableHead>
               <TableHead>Due Date</TableHead>
               <TableHead>Owner</TableHead>
+              <TableHead>Evidence</TableHead>
+              <TableHead className="text-right">Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -87,16 +92,21 @@ export function RemediationsClient({ items, vendors }: RemediationsClientProps) 
                 </TableCell>
                 <TableCell className="font-medium">{rec.title}</TableCell>
                 <TableCell><RiskBadge level={rec.priority} /></TableCell>
-                <TableCell>
-                  <RemediationStatusSelect id={rec.id} status={rec.status} />
-                </TableCell>
                 <TableCell>{formatDate(rec.due_date)}</TableCell>
                 <TableCell className="text-muted-foreground">{rec.owner ?? "—"}</TableCell>
+                <TableCell>
+                  <RemediationEvidenceDialog title={rec.title} evidence={rec.evidence} />
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end">
+                    <RemediationStatusSelect id={rec.id} status={rec.status} />
+                  </div>
+                </TableCell>
               </TableRow>
             ))}
             {filtered.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
                   No remediations found.
                 </TableCell>
               </TableRow>

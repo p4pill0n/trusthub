@@ -6,26 +6,26 @@ TRUNCATE fourth_parties, remediations, interconnections, bitsight_ratings, secur
 
 -- Vendors (20) — entity_name = bank internal entity (France, UK, AMER, ASIA)
 INSERT INTO vendors (id, name, entity_name, type, datacontact_name, contact_email, data_type, data_classification, inherent_risk, residual_risk, last_review_date, next_review_date, status) VALUES
-('a1000001-0000-4000-8000-000000000002', 'Salesforce', 'France', 'SaaS', 'Hannah Becker', 'hannah.becker@salesforce.com', 'PII', 'C3', 'Very High', 'High', '2026-02-08', '2026-05-08', 'Active'),
-('a1000001-0000-4000-8000-000000000003', 'Moody''s Analytics', 'UK', 'Market Data', 'Diego Alvarez', 'diego.alvarez@moodysanalytics.com', 'Financial', 'C3', 'High', 'High', '2026-01-08', '2026-04-08', 'Active'),
-('a1000001-0000-4000-8000-000000000004', 'Splunk', 'AMER', 'SaaS', 'Beatrice Romano', 'beatrice.romano@splunk.com', 'PII', 'C2', 'Medium', 'Low', '2025-12-08', '2026-03-08', 'Active'),
+('a1000001-0000-4000-8000-000000000002', 'Salesforce', 'France', 'SaaS', 'Hannah Becker', 'hannah.becker@salesforce.com', 'PII', 'C3', 'Very High', 'High', '2026-02-08', '2026-05-24', 'Active'),
+('a1000001-0000-4000-8000-000000000003', 'Moody''s Analytics', 'UK', 'Market Data', 'Diego Alvarez', 'diego.alvarez@moodysanalytics.com', 'Financial', 'C3', 'High', 'High', '2026-01-08', '2026-05-09', 'Active'),
+('a1000001-0000-4000-8000-000000000004', 'Splunk', 'AMER', 'SaaS', 'Beatrice Romano', 'beatrice.romano@splunk.com', 'PII', 'C2', 'Medium', 'Low', '2025-12-08', '2026-04-24', 'Active'),
 ('a1000001-0000-4000-8000-000000000005', 'ADP', 'AMER', 'Payroll', 'Priya Sharma', 'priya.sharma@adp.com', 'PII', 'C3', 'Medium', 'Low', '2026-03-25', '2026-06-25', 'Active'),
 ('a1000001-0000-4000-8000-000000000006', 'Microsoft Azure', 'France', 'Cloud Infrastructure', 'Liam O''Connor', 'liam.o.connor@microsoftazure.com', 'Financial', 'C2', 'Low', 'Low', '2026-04-01', '2026-07-01', 'Active'),
-('a1000001-0000-4000-8000-000000000008', 'ServiceNow', 'ASIA', 'SaaS', 'Anders Lindqvist', 'anders.lindqvist@servicenow.com', 'PII', 'C2', 'High', 'High', '2025-11-08', '2026-02-08', 'Active'),
+('a1000001-0000-4000-8000-000000000008', 'ServiceNow', 'ASIA', 'SaaS', 'Anders Lindqvist', 'anders.lindqvist@servicenow.com', 'PII', 'C2', 'High', 'High', '2025-11-08', '2026-04-10', 'Active'),
 ('a1000001-0000-4000-8000-000000000009', 'Workday', 'AMER', 'SaaS', 'Sarah Chen', 'sarah.chen@workday.com', 'PII', 'C3', 'High', 'Medium', '2026-04-20', '2026-07-20', 'Active'),
 ('a1000001-0000-4000-8000-00000000000a', 'Deloitte', 'UK', 'Consulting', 'James Wilson', 'james.wilson@deloitte.com', 'Financial', 'C2', 'Medium', 'Low', '2026-06-20', '2026-09-20', 'Active'),
 ('a1000001-0000-4000-8000-00000000000b', 'AWS', 'France', 'Cloud Infrastructure', 'Emma Thompson', 'emma.thompson@aws.amazon.com', 'Financial', 'C3', 'High', 'Medium', '2026-03-15', '2026-06-15', 'Active'),
-('a1000001-0000-4000-8000-00000000000c', 'Oracle', 'AMER', 'On-Premise Software', 'Michael Brown', 'michael.brown@oracle.com', 'Financial', 'C3', 'High', 'High', '2025-10-10', '2026-01-10', 'Active'),
-('a1000001-0000-4000-8000-00000000000d', 'SAP', 'France', 'SaaS', 'Anna Mueller', 'anna.mueller@sap.com', 'Financial', 'C3', 'Very High', 'High', '2025-09-22', '2025-12-22', 'Active'),
+('a1000001-0000-4000-8000-00000000000c', 'Oracle', 'AMER', 'On-Premise Software', 'Michael Brown', 'michael.brown@oracle.com', 'Financial', 'C3', 'High', 'High', '2025-10-10', '2026-03-26', 'Active'),
+('a1000001-0000-4000-8000-00000000000d', 'SAP', 'France', 'SaaS', 'Anna Mueller', 'anna.mueller@sap.com', 'Financial', 'C3', 'Very High', 'High', '2025-09-22', '2026-03-17', 'Active'),
 ('a1000001-0000-4000-8000-00000000000e', 'DocuSign', 'AMER', 'SaaS', 'Lisa Park', 'lisa.park@docusign.com', 'Legal', 'C2', 'Medium', 'Low', '2026-05-01', '2026-08-01', 'Active'),
 ('a1000001-0000-4000-8000-00000000000f', 'CrowdStrike', 'AMER', 'SaaS', 'David Kim', 'david.kim@crowdstrike.com', 'PII', 'C2', 'Low', 'Low', '2026-05-15', '2026-08-15', 'Active'),
-('a1000001-0000-4000-8000-000000000010', 'Bloomberg', 'UK', 'Market Data', 'Rachel Green', 'rachel.green@bloomberg.net', 'Financial', 'C3', 'High', 'High', '2025-08-18', '2025-11-18', 'Active'),
+('a1000001-0000-4000-8000-000000000010', 'Bloomberg', 'UK', 'Market Data', 'Rachel Green', 'rachel.green@bloomberg.net', 'Financial', 'C3', 'High', 'High', '2025-08-18', '2026-02-28', 'Active'),
 ('a1000001-0000-4000-8000-000000000011', 'Accenture', 'UK', 'Consulting', 'Tom Harris', 'tom.harris@accenture.com', 'PII', 'C2', 'Medium', 'Medium', '2026-07-05', '2026-10-05', 'Active'),
 ('a1000001-0000-4000-8000-000000000012', 'Snowflake', 'AMER', 'Cloud Infrastructure', 'Nina Patel', 'nina.patel@snowflake.com', 'Financial', 'C3', 'High', 'Medium', '2026-05-28', '2026-08-28', 'Active'),
 ('a1000001-0000-4000-8000-000000000013', 'Twilio', 'ASIA', 'SaaS', 'Chris Evans', 'chris.evans@twilio.com', 'PII', 'C2', 'Medium', 'Low', '2026-07-20', '2026-10-20', 'Active'),
 ('a1000001-0000-4000-8000-000000000014', 'IBM', 'AMER', 'Managed Services', 'Patricia Lee', 'patricia.lee@ibm.com', 'Financial', 'C3', 'High', 'High', '2026-06-05', '2026-09-05', 'Active'),
 ('a1000001-0000-4000-8000-000000000015', 'Zendesk', 'ASIA', 'SaaS', 'Kevin Wright', 'kevin.wright@zendesk.com', 'PII', 'C1', 'Low', 'Low', '2026-08-01', '2026-11-01', 'Active'),
-('a1000001-0000-4000-8000-000000000016', 'Stripe', 'AMER', 'SaaS', 'Olivia Martin', 'olivia.martin@stripe.com', 'Financial', 'C3', 'Very High', 'High', '2025-07-12', '2025-10-12', 'Active');
+('a1000001-0000-4000-8000-000000000016', 'Stripe', 'AMER', 'SaaS', 'Olivia Martin', 'olivia.martin@stripe.com', 'Financial', 'C3', 'Very High', 'High', '2025-07-12', '2026-02-10', 'Active');
 
 -- Assessments (8 overdue: Salesforce, Moody''s, Splunk, ServiceNow, Oracle, SAP, Bloomberg, Stripe)
 INSERT INTO assessments (vendor_id, launched_at, completed_at, status, risk_score, assessor_notes) VALUES
@@ -47,8 +47,22 @@ INSERT INTO assessments (vendor_id, launched_at, completed_at, status, risk_scor
 ('a1000001-0000-4000-8000-000000000012', '2026-01-20', '2026-02-14', 'Completed', 60, 'Data warehouse platform.'),
 ('a1000001-0000-4000-8000-000000000013', '2026-02-05', '2026-03-30', 'Completed', 40, 'Communications API provider.'),
 ('a1000001-0000-4000-8000-000000000014', '2026-01-10', '2026-02-05', 'Completed', 76, 'Managed infrastructure services.'),
-('a1000001-0000-4000-8000-000000000015', '2026-02-05', '2026-03-01', 'Completed', 15, 'Customer support platform.'),
+('a1000001-0000-4000-8000-000000000015', '2026-02-05', '2026-03-01', 'Completed', 92, 'Customer support platform.'),
 ('a1000001-0000-4000-8000-000000000016', '2025-06-15', '2025-07-12', 'Overdue', 82, 'Payment processing - PCI DSS required.');
+
+UPDATE assessments SET responses = '{
+  "gov-1": "yes", "gov-2": "yes", "gov-3": "yes",
+  "acc-1": "yes", "acc-2": "yes", "acc-3": "partial",
+  "dat-1": "yes", "dat-2": "yes", "dat-3": "yes",
+  "net-1": "yes", "net-2": "yes", "net-3": "partial",
+  "app-1": "yes", "app-2": "yes", "app-3": "yes",
+  "inc-1": "yes", "inc-2": "yes", "inc-3": "partial",
+  "bcp-1": "yes", "bcp-2": "yes", "bcp-3": "yes",
+  "tpc-1": "partial", "tpc-2": "yes", "tpc-3": "yes",
+  "cmp-1": "yes", "cmp-2": "yes", "cmp-3": "yes",
+  "per-1": "yes", "per-2": "yes", "per-3": "partial"
+}'::jsonb
+WHERE vendor_id = 'a1000001-0000-4000-8000-000000000015' AND status = 'Completed';
 
 -- Security Incidents
 INSERT INTO security_incidents (vendor_id, title, description, severity, detected_at, resolved_at, status) VALUES
@@ -107,19 +121,19 @@ INSERT INTO interconnections (vendor_id, direction, connection_type, description
 ('a1000001-0000-4000-8000-000000000015', 'Outbound', 'API', 'Customer support ticket integration');
 
 -- Remediations
-INSERT INTO remediations (vendor_id, assessment_id, title, description, priority, status, due_date, owner) VALUES
-('a1000001-0000-4000-8000-000000000002', NULL, 'Implement MFA for API Access', 'Require multi-factor authentication for all Salesforce API integrations.', 'Critical', 'Open', '2026-07-15', 'Sarah Mitchell'),
-('a1000001-0000-4000-8000-00000000000c', NULL, 'Apply Critical Oracle Patches', 'Ensure all critical security patches are applied within 30-day SLA.', 'High', 'Open', '2026-07-01', 'Michael Brown'),
-('a1000001-0000-4000-8000-00000000000d', NULL, 'Enable SAP Transport Encryption', 'Configure TLS encryption for all SAP transport connections.', 'Critical', 'In Progress', '2026-06-20', 'Anna Mueller'),
-('a1000001-0000-4000-8000-000000000016', NULL, 'PCI DSS Re-certification', 'Complete annual PCI DSS compliance re-certification.', 'High', 'Open', '2026-08-01', 'Olivia Martin'),
-('a1000001-0000-4000-8000-00000000000b', NULL, 'S3 Bucket Policy Review', 'Conduct quarterly review of all S3 bucket access policies.', 'Medium', 'Closed', '2026-04-30', 'Emma Thompson'),
-('a1000001-0000-4000-8000-000000000010', NULL, 'Credential Rotation Program', 'Implement automated credential rotation for Bloomberg terminals.', 'High', 'Open', '2026-07-20', 'Rachel Green'),
-('a1000001-0000-4000-8000-000000000014', NULL, 'Backup Redundancy Assessment', 'Evaluate backup redundancy following recent outage incident.', 'High', 'In Progress', '2026-07-10', 'Patricia Lee'),
-('a1000001-0000-4000-8000-000000000004', NULL, 'Log Integrity Monitoring', 'Deploy log integrity monitoring to detect injection attacks.', 'Medium', 'Open', '2026-08-15', 'Beatrice Romano'),
-('a1000001-0000-4000-8000-000000000008', NULL, 'Access Review Completion', 'Complete quarterly access review for ServiceNow admin accounts.', 'Medium', 'Closed', '2026-05-31', 'Anders Lindqvist'),
-('a1000001-0000-4000-8000-000000000009', NULL, 'HR Data Minimization', 'Review and minimize HR data fields shared with Workday.', 'Low', 'Open', '2026-09-01', 'Sarah Chen'),
-('a1000001-0000-4000-8000-000000000013', NULL, 'Sub-account Security Controls', 'Implement enhanced security controls for Twilio sub-accounts.', 'Medium', 'Closed', '2026-03-01', 'Chris Evans'),
-('a1000001-0000-4000-8000-000000000006', NULL, 'Azure Key Vault Migration', 'Migrate secrets from config files to Azure Key Vault.', 'Low', 'In Progress', '2026-08-30', 'Liam O''Connor');
+INSERT INTO remediations (vendor_id, assessment_id, title, description, priority, status, due_date, owner, evidence) VALUES
+('a1000001-0000-4000-8000-000000000002', NULL, 'Implement MFA for API Access', 'Require multi-factor authentication for all Salesforce API integrations.', 'Critical', 'Open', '2026-07-15', 'Sarah Mitchell', 'Remediation not yet started. Vendor kick-off scheduled.'),
+('a1000001-0000-4000-8000-00000000000c', NULL, 'Apply Critical Oracle Patches', 'Ensure all critical security patches are applied within 30-day SLA.', 'High', 'Open', '2026-07-01', 'Michael Brown', 'Remediation not yet started. Awaiting vendor patch window.'),
+('a1000001-0000-4000-8000-00000000000d', NULL, 'Enable SAP Transport Encryption', 'Configure TLS encryption for all SAP transport connections.', 'Critical', 'In Progress', '2026-06-20', 'Anna Mueller', 'TLS enabled on 3 of 5 SAP transport routes. Remaining routes in test.'),
+('a1000001-0000-4000-8000-000000000016', NULL, 'PCI DSS Re-certification', 'Complete annual PCI DSS compliance re-certification.', 'High', 'Open', '2026-08-01', 'Olivia Martin', 'Remediation not yet started. Scoping call booked with vendor.'),
+('a1000001-0000-4000-8000-00000000000b', NULL, 'S3 Bucket Policy Review', 'Conduct quarterly review of all S3 bucket access policies.', 'Medium', 'Closed', '2026-04-30', 'Emma Thompson', 'All 42 S3 bucket policies reviewed and tightened per least-privilege standard.'),
+('a1000001-0000-4000-8000-000000000010', NULL, 'Credential Rotation Program', 'Implement automated credential rotation for Bloomberg terminals.', 'High', 'Open', '2026-07-20', 'Rachel Green', 'Remediation not yet started. No fix actions documented.'),
+('a1000001-0000-4000-8000-000000000014', NULL, 'Backup Redundancy Assessment', 'Evaluate backup redundancy following recent outage incident.', 'High', 'In Progress', '2026-07-10', 'Patricia Lee', 'Secondary backup region validated. Failover test scheduled next week.'),
+('a1000001-0000-4000-8000-000000000004', NULL, 'Log Integrity Monitoring', 'Deploy log integrity monitoring to detect injection attacks.', 'Medium', 'Open', '2026-08-15', 'Beatrice Romano', 'Remediation not yet started. Monitoring tool shortlist under review.'),
+('a1000001-0000-4000-8000-000000000008', NULL, 'Access Review Completion', 'Complete quarterly access review for ServiceNow admin accounts.', 'Medium', 'Closed', '2026-05-31', 'Anders Lindqvist', 'Q1 admin access review completed. Two excess privileged accounts removed.'),
+('a1000001-0000-4000-8000-000000000009', NULL, 'HR Data Minimization', 'Review and minimize HR data fields shared with Workday.', 'Low', 'Open', '2026-09-01', 'Sarah Chen', 'Remediation not yet started. Data mapping exercise pending.'),
+('a1000001-0000-4000-8000-000000000013', NULL, 'Sub-account Security Controls', 'Implement enhanced security controls for Twilio sub-accounts.', 'Medium', 'Closed', '2026-03-01', 'Chris Evans', 'Sub-account IAM roles restricted to least privilege across all environments.'),
+('a1000001-0000-4000-8000-000000000006', NULL, 'Azure Key Vault Migration', 'Migrate secrets from config files to Azure Key Vault.', 'Low', 'In Progress', '2026-08-30', 'Liam O''Connor', 'Key Vault provisioned in production. 60% of application secrets migrated.');
 
 -- Fourth Parties
 INSERT INTO fourth_parties (parent_vendor_id, name, service_description, risk_level, country) VALUES

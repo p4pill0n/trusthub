@@ -19,8 +19,10 @@ import {
 import { AssessmentStatusBadge } from "@/components/risk-assessment/assessment-status-badge";
 import { CopyQuestionnaireLink } from "@/components/risk-assessment/copy-questionnaire-link";
 import { TriggerAssessmentModal } from "@/components/risk-assessment/trigger-assessment-modal";
+import { DeleteAssessmentButton } from "@/components/risk-assessment/delete-assessment-button";
+import { ViewQuestionnaireDialog } from "@/components/risk-assessment/view-questionnaire-dialog";
 import { VendorNameCell } from "@/components/vendors/vendor-name-cell";
-import { formatDateTime } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import type { Assessment, Vendor } from "@/types";
 
 interface RiskAssessmentClientProps {
@@ -64,38 +66,73 @@ export function RiskAssessmentClient({ assessments, vendors }: RiskAssessmentCli
               <TableHead>Launched</TableHead>
               <TableHead>Completed</TableHead>
               <TableHead>Risk score</TableHead>
-              <TableHead>Questionnaire link</TableHead>
+              <TableHead>Questionnaire</TableHead>
+              <TableHead className="w-12 text-right">
+                <span className="sr-only">Actions</span>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.map((assessment) => (
-              <TableRow key={assessment.id}>
-                <TableCell className="font-medium">
-                  <VendorNameCell
-                    name={assessment.vendors?.name}
-                    contactEmail={assessment.vendors?.contact_email}
-                  />
-                </TableCell>
-                <TableCell>
-                  <AssessmentStatusBadge status={assessment.status} />
-                </TableCell>
-                <TableCell>{formatDateTime(assessment.launched_at)}</TableCell>
-                <TableCell>{formatDateTime(assessment.completed_at)}</TableCell>
-                <TableCell>
-                  {assessment.risk_score !== null ? `${assessment.risk_score}/100` : "—"}
-                </TableCell>
-                <TableCell>
-                  {assessment.status === "Completed" ? (
-                    <span className="text-sm text-muted-foreground">Submitted</span>
-                  ) : (
-                    <CopyQuestionnaireLink token={assessment.questionnaire_token} />
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
+            {filtered.map((assessment) => {
+              const vendorName = assessment.vendors?.name ?? "Vendor";
+              const hasResponses =
+                assessment.responses !== null &&
+                Object.keys(assessment.responses).length > 0;
+              const showResponses =
+                assessment.status === "Completed" ||
+                hasResponses ||
+                assessment.risk_score !== null;
+              const dialogProps = {
+                vendorName,
+                mode: showResponses ? ("responses" as const) : ("preview" as const),
+                responses: assessment.responses,
+                riskScore: assessment.risk_score,
+              };
+
+              return (
+                <TableRow key={assessment.id}>
+                  <TableCell className="font-medium">
+                    <VendorNameCell
+                      name={assessment.vendors?.name}
+                      contactEmail={assessment.vendors?.contact_email}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <AssessmentStatusBadge status={assessment.status} />
+                  </TableCell>
+                  <TableCell>{formatDate(assessment.launched_at)}</TableCell>
+                  <TableCell>{formatDate(assessment.completed_at)}</TableCell>
+                  <TableCell>
+                    {assessment.risk_score !== null ? (
+                      <ViewQuestionnaireDialog {...dialogProps}>
+                        <button
+                          type="button"
+                          className="text-sm font-semibold text-foreground underline-offset-4 hover:underline"
+                        >
+                          {assessment.risk_score}/100
+                        </button>
+                      </ViewQuestionnaireDialog>
+                    ) : (
+                      "—"
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                      <ViewQuestionnaireDialog {...dialogProps} />
+                      {assessment.status !== "Completed" && (
+                        <CopyQuestionnaireLink token={assessment.questionnaire_token} />
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DeleteAssessmentButton id={assessment.id} vendorName={vendorName} />
+                  </TableCell>
+                </TableRow>
+              );
+            })}
             {filtered.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
                   No risk assessments found. Trigger an assessment to get started.
                 </TableCell>
               </TableRow>

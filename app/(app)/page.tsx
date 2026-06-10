@@ -65,8 +65,10 @@ export default async function DashboardPage() {
       <Card className="border-border/80 shadow-none">
         <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4">
           <div>
-            <CardTitle className="card-title-serif">Upcoming &amp; Overdue Reviews</CardTitle>
-            <p className="mt-1 text-xs text-muted-foreground">Sorted by next review date</p>
+            <CardTitle className="card-title-serif">Overdue Reviews</CardTitle>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Same overdue vendors as the Vendors tab, most overdue first
+            </p>
           </div>
           <Link
             href="/vendors"

@@ -7,8 +7,8 @@ function normalizeRiskLevel(level: string): string {
 const pillStyles: Record<string, string> = {
   Low: "bg-emerald-50 text-emerald-700 border-emerald-200",
   Medium: "bg-amber-50 text-amber-700 border-amber-200",
-  High: "bg-orange-50 text-orange-700 border-orange-200",
-  "Very High": "bg-red-50 text-red-800 border-red-200",
+  High: "bg-red-50 text-red-800 border-red-200",
+  "Very High": "bg-red-100 text-red-800 border-red-300",
 };
 
 interface RiskBadgeProps {

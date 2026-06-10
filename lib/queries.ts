@@ -1,7 +1,7 @@
 import { supabase } from "./supabase";
 import type { Assessment, Vendor, DashboardStats, RankedFourthParty } from "@/types";
 import { RISK_COLORS } from "./utils";
-import { differenceInDays, parseISO } from "date-fns";
+import { differenceInDays, format, parseISO, startOfDay } from "date-fns";
 
 export async function getVendors(filters?: {
   status?: string;
@@ -28,11 +28,14 @@ export async function getVendors(filters?: {
 }
 
 export async function getTopOverdueVendors(limit = 8): Promise<Vendor[]> {
+  const today = format(startOfDay(new Date()), "yyyy-MM-dd");
+
   const { data, error } = await supabase
     .from("vendors")
     .select("*")
-    .eq("status", "Active")
+    .neq("status", "Offboarded")
     .not("next_review_date", "is", null)
+    .lt("next_review_date", today)
     .order("next_review_date", { ascending: true })
     .limit(limit);
 
@@ -52,8 +55,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   if (remediationsError) throw remediationsError;
 
   const allVendors = vendors ?? [];
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = startOfDay(new Date());
   const in90Days = new Date(today);
   in90Days.setDate(in90Days.getDate() + 90);
 
@@ -64,12 +66,12 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 
   const overdueAssessments = allVendors.filter((v) => {
     if (!v.next_review_date) return false;
-    return parseISO(v.next_review_date) < today;
+    return startOfDay(parseISO(v.next_review_date.slice(0, 10))) < today;
   }).length;
 
   const dueIn90Days = allVendors.filter((v) => {
     if (!v.next_review_date) return false;
-    const d = parseISO(v.next_review_date);
+    const d = startOfDay(parseISO(v.next_review_date.slice(0, 10)));
     return d >= today && d <= in90Days;
   }).length;
 
@@ -99,7 +101,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     let count = 0;
     allVendors.forEach((v) => {
       if (!v.next_review_date) return;
-      const days = differenceInDays(parseISO(v.next_review_date), today);
+      const days = differenceInDays(startOfDay(parseISO(v.next_review_date.slice(0, 10))), today);
       if (name === "Overdue" && days < 0) count++;
       else if (name === "< 30d" && days >= 0 && days < 30) count++;
       else if (name === "30–90d" && days >= 30 && days <= 90) count++;
@@ -109,15 +111,15 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   });
 
   const remediationsStatuses = [
-    { name: "Open", color: "#3b82f6" },
-    { name: "In Progress", color: "#d97706" },
-    { name: "Closed", color: "#a1a1aa" },
+    { name: "Not started", status: "Open", color: "#ef4444" },
+    { name: "In Progress", status: "In Progress", color: "#d97706" },
+    { name: "Closed", status: "Closed", color: "#22c55e" },
   ] as const;
 
   const allRemediations = remediationsItems ?? [];
-  const remediationsStatusDistribution = remediationsStatuses.map(({ name, color }) => ({
+  const remediationsStatusDistribution = remediationsStatuses.map(({ name, status, color }) => ({
     name,
-    value: allRemediations.filter((r) => r.status === name).length,
+    value: allRemediations.filter((r) => r.status === status).length,
     color,
   }));
 

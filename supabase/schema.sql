@@ -81,6 +81,7 @@ CREATE TABLE remediations (
   status TEXT NOT NULL DEFAULT 'Open' CHECK (status IN ('Open', 'In Progress', 'Closed')),
   due_date DATE,
   owner TEXT,
+  evidence TEXT,
   user_id UUID REFERENCES auth.users(id)
 );
 

@@ -1,5 +1,12 @@
 export type QuestionnaireAnswer = "yes" | "partial" | "no" | "na";
 
+export const QUESTIONNAIRE_ANSWER_LABELS: Record<QuestionnaireAnswer, string> = {
+  yes: "Yes",
+  partial: "Partial",
+  no: "No",
+  na: "N/A",
+};
+
 interface QuestionnaireQuestion {
   id: string;
   category: string;

@@ -13,8 +13,9 @@ export default async function RiskAssessmentPage() {
   return (
     <div className="space-y-7">
       <PageHeader
-        title="Risk Assessment"
+        title="Risk Assessments"
         description="Manage third-party security risk assessments. Trigger questionnaires and track vendor responses across key risk areas."
+        descriptionClassName="mt-2 text-sm text-muted-foreground whitespace-nowrap"
       />
 
       <RiskAssessmentClient assessments={assessments} vendors={vendors} />

@@ -9,7 +9,7 @@ import {
   isCompleteResponseSet,
   type QuestionnaireAnswer,
 } from "@/lib/questionnaire";
-import { computeNextReviewDate, validatePolicyInput } from "@/lib/policy";
+import { computeNextReviewDate, deriveResidualRisk, validatePolicyInput } from "@/lib/policy";
 import { getTprmPolicy, getVendorActivity, getVendorById, getExperts } from "@/lib/queries";
 import { hasDocumentedEvidence } from "@/lib/remediation-status";
 import {
@@ -312,6 +312,7 @@ export async function submitQuestionnaire(
     .update({
       last_review_date: reviewDate,
       next_review_date: computeNextReviewDate(reviewDate, vendor.inherent_risk, policy, nextStatus),
+      residual_risk: deriveResidualRisk(vendor.inherent_risk, riskScore),
       status: nextStatus,
     })
     .eq("id", assessment.vendor_id);

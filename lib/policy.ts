@@ -1,5 +1,5 @@
 import { addMonths, format, isValid, parseISO } from "date-fns";
-import type { TprmPolicy, TprmPolicyInput, Vendor } from "@/types";
+import type { InherentRisk, TprmPolicy, TprmPolicyInput, Vendor } from "@/types";
 
 export const DEFAULT_TPRM_POLICY: TprmPolicyInput = {
   review_months_low: 36,
@@ -66,6 +66,19 @@ export function applyPolicyToVendors<T extends PolicyVendorFields>(
   policy: TprmPolicyInput
 ): T[] {
   return vendors.map((vendor) => applyPolicyToVendor(vendor, policy));
+}
+
+const RISK_SCALE = ["Low", "Medium", "High", "Very High"] as const;
+
+/**
+ * Residual risk is inherent risk reduced by control strength, never above inherent risk.
+ * Risk score < 25 lowers it two levels, < 60 one level, otherwise it stays at inherent.
+ */
+export function deriveResidualRisk(inherentRisk: string, riskScore: number): InherentRisk {
+  const normalized = inherentRisk === "Critical" ? "Very High" : inherentRisk;
+  const index = Math.max(0, RISK_SCALE.indexOf(normalized as InherentRisk));
+  const reduction = riskScore < 25 ? 2 : riskScore < 60 ? 1 : 0;
+  return RISK_SCALE[Math.max(0, index - reduction)];
 }
 
 export function validatePolicyInput(input: TprmPolicyInput): string | null {

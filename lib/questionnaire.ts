@@ -50,10 +50,11 @@ export const QUESTIONNAIRE_CATEGORIES = Array.from(
   new Set(QUESTIONNAIRE_QUESTIONS.map((q) => q.category))
 );
 
+/** Risk contribution per answer: a higher risk score means weaker controls. */
 const ANSWER_SCORES: Record<Exclude<QuestionnaireAnswer, "na">, number> = {
-  yes: 100,
+  yes: 0,
   partial: 50,
-  no: 0,
+  no: 100,
 };
 
 const VALID_ANSWERS = new Set<string>(Object.keys(QUESTIONNAIRE_ANSWER_LABELS));

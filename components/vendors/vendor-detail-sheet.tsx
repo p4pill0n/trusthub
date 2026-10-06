@@ -435,6 +435,10 @@ export function VendorDetailSheet({
                   onChange={(v) => updateDraft("residual_risk", v)}
                 />
               </div>
+              <p className="-mt-2 text-xs text-muted-foreground">
+                Residual risk is set from the questionnaire risk score each time an assessment is
+                completed. You can override it here.
+              </p>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">

@@ -1,14 +1,21 @@
-import { getAssessments, getVendors } from "@/lib/queries";
+import { getActiveVendors, getAssessments } from "@/lib/queries";
 import { PageHeader } from "@/components/layout/page-header";
 import { RiskAssessmentClient } from "@/components/risk-assessment/risk-assessment-client";
 import { QuestionnaireReferenceTable } from "@/components/risk-assessment/questionnaire-reference-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { QUESTIONNAIRE_QUESTIONS } from "@/lib/questionnaire";
+import { QUESTIONNAIRE_CATEGORIES, QUESTIONNAIRE_QUESTIONS } from "@/lib/questionnaire";
 
 export const dynamic = "force-dynamic";
 
-export default async function RiskAssessmentPage() {
-  const [assessments, vendors] = await Promise.all([getAssessments(), getVendors()]);
+export default async function RiskAssessmentPage({
+  searchParams,
+}: {
+  searchParams: { vendor?: string };
+}) {
+  const [assessments, vendors] = await Promise.all([getAssessments(), getActiveVendors()]);
+  const preselectedVendorId = vendors.some((v) => v.id === searchParams.vendor)
+    ? searchParams.vendor
+    : undefined;
 
   return (
     <div className="space-y-7">
@@ -18,7 +25,11 @@ export default async function RiskAssessmentPage() {
         descriptionClassName="mt-2 text-sm text-muted-foreground whitespace-nowrap"
       />
 
-      <RiskAssessmentClient assessments={assessments} vendors={vendors} />
+      <RiskAssessmentClient
+        assessments={assessments}
+        vendors={vendors}
+        preselectedVendorId={preselectedVendorId}
+      />
 
       <Card className="border-border/80 shadow-none">
         <CardHeader className="pb-4">
@@ -26,7 +37,8 @@ export default async function RiskAssessmentPage() {
             Third-party security risk questionnaire
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            {QUESTIONNAIRE_QUESTIONS.length} questions across {new Set(QUESTIONNAIRE_QUESTIONS.map((q) => q.category)).size} risk areas sent to vendor partners.
+            {QUESTIONNAIRE_QUESTIONS.length} questions across {QUESTIONNAIRE_CATEGORIES.length} risk
+            areas sent to vendor partners.
           </p>
         </CardHeader>
         <CardContent>

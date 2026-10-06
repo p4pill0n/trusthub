@@ -20,7 +20,8 @@ import {
 import { RiskBadge, StatusBadge } from "@/components/shared/risk-badge";
 import { VendorActions } from "@/components/vendors/vendor-actions";
 import { VendorNameLink } from "@/components/vendors/vendor-name-link";
-import { formatDate, getReviewStatus } from "@/lib/utils";
+import { differenceInCalendarDays, parseISO } from "date-fns";
+import { formatDate, getVendorReviewStatus } from "@/lib/utils";
 import type { Expert, Vendor } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -93,11 +94,15 @@ function filterVendors(vendors: Vendor[], filters: VendorColumnFilters) {
       if (!label.includes(filters.lastReview.toLowerCase())) return false;
     }
 
-    if (filters.nextReview !== "all") {
-      const reviewStatus = getReviewStatus(v.next_review_date);
-      if (filters.nextReview === "overdue" && reviewStatus.variant !== "overdue") return false;
-      if (filters.nextReview === "upcoming" && reviewStatus.variant !== "upcoming") return false;
-      if (filters.nextReview === "none" && reviewStatus.variant !== "none") return false;
+    if (filters.nextReview === "due90") {
+      if (getVendorReviewStatus(v).variant !== "upcoming" || !v.next_review_date) return false;
+      const days = differenceInCalendarDays(parseISO(v.next_review_date.slice(0, 10)), new Date());
+      if (days > 90) return false;
+    } else if (
+      filters.nextReview !== "all" &&
+      getVendorReviewStatus(v).variant !== filters.nextReview
+    ) {
+      return false;
     }
 
     return true;
@@ -111,6 +116,7 @@ interface VendorTableProps {
   emptyMessage?: string;
   enableColumnFilters?: boolean;
   initialSearch?: string;
+  initialNextReview?: string;
   onFilteredChange?: (count: number) => void;
   onFiltersActiveChange?: (active: boolean) => void;
   clearFiltersSignal?: number;
@@ -173,6 +179,7 @@ export function VendorTable({
   emptyMessage = "No vendors found.",
   enableColumnFilters = false,
   initialSearch = "",
+  initialNextReview = "all",
   onFilteredChange,
   onFiltersActiveChange,
   clearFiltersSignal = 0,
@@ -184,11 +191,12 @@ export function VendorTable({
   const [filters, setFilters] = useState<VendorColumnFilters>(() => ({
     ...EMPTY_FILTERS,
     name: initialSearch,
+    nextReview: initialNextReview,
   }));
 
   useEffect(() => {
-    setFilters((prev) => ({ ...prev, name: initialSearch }));
-  }, [initialSearch]);
+    setFilters((prev) => ({ ...prev, name: initialSearch, nextReview: initialNextReview }));
+  }, [initialSearch, initialNextReview]);
 
   useEffect(() => {
     if (clearFiltersSignal > 0) {
@@ -377,7 +385,8 @@ export function VendorTable({
                   { value: "all", label: "All" },
                   { value: "overdue", label: "Overdue" },
                   { value: "upcoming", label: "Upcoming" },
-                  { value: "none", label: "None" },
+                  { value: "due90", label: "Due in 90 days" },
+                  { value: "unreviewed", label: "Not reviewed" },
                 ]}
               />
             </TableHead>
@@ -387,7 +396,7 @@ export function VendorTable({
       </TableHeader>
       <TableBody>
         {displayed.map((vendor) => {
-          const reviewStatus = getReviewStatus(vendor.next_review_date);
+          const reviewStatus = getVendorReviewStatus(vendor);
           return (
             <TableRow key={vendor.id}>
               <TableCell className={cn(!isCompact && "font-medium")}>
@@ -432,7 +441,8 @@ export function VendorTable({
                     "text-sm",
                     isCompact ? "font-semibold" : "font-medium",
                     reviewStatus.variant === "overdue" && "text-red-600",
-                    reviewStatus.variant === "upcoming" && "text-green-600"
+                    reviewStatus.variant === "upcoming" && "text-green-600",
+                    reviewStatus.variant === "unreviewed" && "text-amber-700"
                   )}
                 >
                   {reviewStatus.label}

@@ -4,7 +4,11 @@ import { BroadcastFollowUpClient } from "@/components/broadcast/broadcast-follow
 
 export const dynamic = "force-dynamic";
 
-export default async function BroadcastFollowUpPage() {
+export default async function BroadcastFollowUpPage({
+  searchParams,
+}: {
+  searchParams: { campaign?: string };
+}) {
   const [broadcasts, recipients] = await Promise.all([
     getBroadcasts(),
     getBroadcastRecipients(),
@@ -16,7 +20,11 @@ export default async function BroadcastFollowUpPage() {
         title="Follow-up"
         description="Select a broadcast campaign, then track acknowledgements and chase vendors that have not responded."
       />
-      <BroadcastFollowUpClient broadcasts={broadcasts} recipients={recipients} />
+      <BroadcastFollowUpClient
+        broadcasts={broadcasts}
+        recipients={recipients}
+        initialCampaignId={searchParams.campaign ?? null}
+      />
     </div>
   );
 }

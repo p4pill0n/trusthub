@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,20 +20,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { launchAssessment } from "@/lib/actions";
+import { getQuestionnaireUrl } from "@/lib/questionnaire";
 import { CopyQuestionnaireLink } from "@/components/risk-assessment/copy-questionnaire-link";
 import type { Vendor } from "@/types";
 import { ClipboardList } from "lucide-react";
 
 interface TriggerAssessmentModalProps {
   vendors: Vendor[];
+  preselectedVendorId?: string;
 }
 
-export function TriggerAssessmentModal({ vendors }: TriggerAssessmentModalProps) {
-  const [open, setOpen] = useState(false);
-  const [vendorId, setVendorId] = useState("");
+export function TriggerAssessmentModal({ vendors, preselectedVendorId }: TriggerAssessmentModalProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [open, setOpen] = useState(Boolean(preselectedVendorId));
+  const [vendorId, setVendorId] = useState(preselectedVendorId ?? "");
   const [isPending, startTransition] = useTransition();
   const [createdToken, setCreatedToken] = useState<string | null>(null);
-  const [createdUrl, setCreatedUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [alreadyExists, setAlreadyExists] = useState(false);
 
@@ -41,9 +45,9 @@ export function TriggerAssessmentModal({ vendors }: TriggerAssessmentModalProps)
     if (!nextOpen) {
       setVendorId("");
       setCreatedToken(null);
-      setCreatedUrl(null);
       setError(null);
       setAlreadyExists(false);
+      if (preselectedVendorId) router.replace(pathname);
     }
   }
 
@@ -59,12 +63,10 @@ export function TriggerAssessmentModal({ vendors }: TriggerAssessmentModalProps)
           if (result.existingToken) {
             setAlreadyExists(true);
             setCreatedToken(result.existingToken);
-            setCreatedUrl(result.existingUrl);
           }
           return;
         }
         setCreatedToken(result.token);
-        setCreatedUrl(result.url);
       } catch {
         setError("Failed to create assessment. Please try again.");
       }
@@ -84,7 +86,7 @@ export function TriggerAssessmentModal({ vendors }: TriggerAssessmentModalProps)
           <DialogTitle>Trigger risk assessment</DialogTitle>
           <p className="text-sm text-muted-foreground">
             Creates a secure questionnaire link for the vendor to complete their third-party security
-            risk assessment.
+            risk assessment. Completing it updates the vendor&apos;s last review date.
           </p>
         </DialogHeader>
 
@@ -104,7 +106,7 @@ export function TriggerAssessmentModal({ vendors }: TriggerAssessmentModalProps)
               <Label>Questionnaire link</Label>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
                 <code className="min-w-0 flex-1 break-all rounded-md border bg-muted/40 px-3 py-2 text-xs leading-relaxed">
-                  {createdUrl}
+                  {getQuestionnaireUrl(createdToken)}
                 </code>
                 <CopyQuestionnaireLink token={createdToken} />
               </div>

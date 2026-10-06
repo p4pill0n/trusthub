@@ -56,6 +56,18 @@ const ANSWER_SCORES: Record<Exclude<QuestionnaireAnswer, "na">, number> = {
   no: 0,
 };
 
+const VALID_ANSWERS = new Set<string>(Object.keys(QUESTIONNAIRE_ANSWER_LABELS));
+
+export function isCompleteResponseSet(
+  responses: Record<string, unknown> | null | undefined
+): responses is Record<string, QuestionnaireAnswer> {
+  if (!responses) return false;
+  return QUESTIONNAIRE_QUESTIONS.every((q) => {
+    const answer = responses[q.id];
+    return typeof answer === "string" && VALID_ANSWERS.has(answer);
+  });
+}
+
 export function calculateRiskScore(responses: Record<string, QuestionnaireAnswer>): number {
   const scores = QUESTIONNAIRE_QUESTIONS.map((q) => responses[q.id])
     .filter((answer): answer is Exclude<QuestionnaireAnswer, "na"> => answer !== undefined && answer !== "na")
@@ -65,10 +77,11 @@ export function calculateRiskScore(responses: Record<string, QuestionnaireAnswer
   return Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
 }
 
+/** Client-side only: links are built from the origin the user is actually on. */
 export function getQuestionnaireUrl(token: string): string {
-  if (typeof window !== "undefined") {
-    return `${window.location.origin}/questionnaire/${token}`;
-  }
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const base =
+    typeof window !== "undefined"
+      ? window.location.origin
+      : process.env.NEXT_PUBLIC_APP_URL ?? "";
   return `${base}/questionnaire/${token}`;
 }

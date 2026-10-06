@@ -19,18 +19,30 @@ import {
 import { RiskBadge } from "@/components/shared/risk-badge";
 import { RemediationStatusSelect } from "@/components/remediations/status-select";
 import { RemediationEvidenceDialog } from "@/components/remediations/remediation-evidence-dialog";
-import { NewRemediationModal } from "@/components/remediations/new-remediation-modal";
+import {
+  NewRemediationModal,
+  type RemediationAssessmentOption,
+} from "@/components/remediations/new-remediation-modal";
 import { VendorNameCell } from "@/components/vendors/vendor-name-cell";
 import { REMEDIATION_STATUS_LABELS } from "@/lib/remediation-status";
-import { formatDate } from "@/lib/utils";
+import { cn, formatDate, isPastDate } from "@/lib/utils";
 import type { Vendor, Remediation, RemediationStatus } from "@/types";
 
 interface RemediationsClientProps {
-  items: (Remediation & { vendors: { name: string; contact_email?: string } | null })[];
+  items: Remediation[];
   vendors: Vendor[];
+  assessments: RemediationAssessmentOption[];
+  preselectedVendorId?: string;
+  preselectedAssessmentId?: string;
 }
 
-export function RemediationsClient({ items, vendors }: RemediationsClientProps) {
+export function RemediationsClient({
+  items,
+  vendors,
+  assessments,
+  preselectedVendorId,
+  preselectedAssessmentId,
+}: RemediationsClientProps) {
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
 
@@ -65,7 +77,12 @@ export function RemediationsClient({ items, vendors }: RemediationsClientProps) 
             </SelectContent>
           </Select>
         </div>
-        <NewRemediationModal vendors={vendors} />
+        <NewRemediationModal
+          vendors={vendors}
+          assessments={assessments}
+          preselectedVendorId={preselectedVendorId}
+          preselectedAssessmentId={preselectedAssessmentId}
+        />
       </div>
 
       <div className="rounded-lg border border-border/80 bg-white">
@@ -82,28 +99,47 @@ export function RemediationsClient({ items, vendors }: RemediationsClientProps) 
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.map((rec) => (
-              <TableRow key={rec.id}>
-                <TableCell>
-                  <VendorNameCell
-                    name={rec.vendors?.name}
-                    contactEmail={rec.vendors?.contact_email}
-                  />
-                </TableCell>
-                <TableCell className="font-medium">{rec.title}</TableCell>
-                <TableCell><RiskBadge level={rec.priority} /></TableCell>
-                <TableCell>{formatDate(rec.due_date)}</TableCell>
-                <TableCell className="text-muted-foreground">{rec.owner ?? "—"}</TableCell>
-                <TableCell>
-                  <RemediationEvidenceDialog title={rec.title} evidence={rec.evidence} />
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end">
-                    <RemediationStatusSelect id={rec.id} status={rec.status} />
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
+            {filtered.map((rec) => {
+              const overdue = rec.status !== "Closed" && isPastDate(rec.due_date);
+              return (
+                <TableRow key={rec.id}>
+                  <TableCell>
+                    <VendorNameCell
+                      vendorId={rec.vendor_id}
+                      name={rec.vendors?.name}
+                      contactEmail={rec.vendors?.contact_email}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <div className="font-medium">{rec.title}</div>
+                    {rec.assessments && (
+                      <div className="text-xs text-muted-foreground">
+                        From assessment completed {formatDate(rec.assessments.completed_at)}
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell><RiskBadge level={rec.priority} /></TableCell>
+                  <TableCell className={cn(overdue && "font-medium text-red-600")}>
+                    {formatDate(rec.due_date)}
+                    {overdue && <span className="ml-1 text-xs">(overdue)</span>}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">{rec.owner || "—"}</TableCell>
+                  <TableCell>
+                    <RemediationEvidenceDialog
+                      id={rec.id}
+                      title={rec.title}
+                      evidence={rec.evidence}
+                      status={rec.status}
+                    />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end">
+                      <RemediationStatusSelect id={rec.id} status={rec.status} />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
             {filtered.length === 0 && (
               <TableRow>
                 <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
@@ -114,6 +150,9 @@ export function RemediationsClient({ items, vendors }: RemediationsClientProps) 
           </TableBody>
         </Table>
       </div>
+      <p className="text-sm text-muted-foreground">
+        {filtered.length} of {items.length} remediations
+      </p>
     </div>
   );
 }

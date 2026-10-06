@@ -26,11 +26,12 @@ import type { SecurityIncident } from "@/types";
 
 interface IncidentsClientProps {
   incidents: SecurityIncident[];
+  initialStatus?: string;
 }
 
-export function IncidentsClient({ incidents }: IncidentsClientProps) {
+export function IncidentsClient({ incidents, initialStatus = "all" }: IncidentsClientProps) {
   const [severityFilter, setSeverityFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState(initialStatus);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const filtered = incidents.filter((i) => {
@@ -102,6 +103,7 @@ export function IncidentsClient({ incidents }: IncidentsClientProps) {
                   </TableCell>
                   <TableCell>
                     <VendorNameCell
+                      vendorId={incident.vendor_id}
                       name={incident.vendors?.name}
                       contactEmail={incident.vendors?.contact_email}
                     />

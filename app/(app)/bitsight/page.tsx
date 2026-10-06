@@ -11,7 +11,7 @@ export default async function BitSightPage() {
     <div className="space-y-7">
       <PageHeader
         title="BitSight Ratings"
-        description="Ratings sourced from BitSight API — refreshed weekly."
+        description="Latest BitSight security rating for each active vendor (scale 250–900)."
       />
       <BitSightClient ratings={ratings} />
     </div>

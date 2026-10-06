@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 
-export default function RiskAssessmentError({
+export default function AppError({
   error,
   reset,
 }: {
@@ -11,7 +11,7 @@ export default function RiskAssessmentError({
 }) {
   return (
     <div className="mx-auto max-w-lg space-y-4 py-16 text-center">
-      <h2 className="text-xl font-semibold">Unable to load risk assessments</h2>
+      <h2 className="text-xl font-semibold">Unable to load this page</h2>
       <p className="text-sm text-muted-foreground">
         {error.message || "Something went wrong while loading the page."}
       </p>

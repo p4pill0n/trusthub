@@ -28,6 +28,11 @@ export function DonutChart({ title, description, data }: DonutChartProps) {
     RISK_COLORS.High,
     RISK_COLORS["Very High"],
   ];
+  const entries = data.map((entry, index) => ({
+    ...entry,
+    color: entry.color ?? colors[index % colors.length],
+  }));
+  const slices = entries.filter((d) => d.value > 0);
 
   return (
     <Card className="border-border/80 shadow-none">
@@ -39,7 +44,7 @@ export function DonutChart({ title, description, data }: DonutChartProps) {
         <ResponsiveContainer width="100%" height={180}>
           <PieChart>
             <Pie
-              data={data.filter((d) => d.value > 0)}
+              data={slices}
               cx="50%"
               cy="50%"
               innerRadius={52}
@@ -47,18 +52,19 @@ export function DonutChart({ title, description, data }: DonutChartProps) {
               paddingAngle={2}
               dataKey="value"
             >
-              {data.map((entry, index) => (
-                <Cell key={entry.name} fill={entry.color ?? colors[index % colors.length]} />
+              {slices.map((entry) => (
+                <Cell key={entry.name} fill={entry.color} />
               ))}
             </Pie>
+            <Tooltip />
           </PieChart>
         </ResponsiveContainer>
         <div className="mt-1 flex flex-wrap justify-center gap-x-4 gap-y-1.5">
-          {data.map((entry, index) => (
+          {entries.map((entry) => (
             <div key={entry.name} className="flex items-center gap-1.5 text-xs">
               <span
                 className="h-2 w-2 rounded-full"
-                style={{ backgroundColor: entry.color ?? colors[index % colors.length] }}
+                style={{ backgroundColor: entry.color }}
               />
               <span className="text-muted-foreground">{entry.name}</span>
               <span className="font-medium text-foreground">{entry.value}</span>

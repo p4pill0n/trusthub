@@ -23,21 +23,39 @@ export default async function DashboardPage() {
           distribution.
         </p>
       </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard title="Total Vendors" value={stats.totalVendors} subtitle="+3 this quarter" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <KpiCard
+          title="Active Vendors"
+          value={stats.totalVendors}
+          subtitle={`+${stats.newVendorsLast90Days} added in the last 90 days`}
+          href="/vendors"
+        />
         <KpiCard
           title="Very High Residual Risk"
-          value={stats.criticalResidualRisk}
+          value={stats.veryHighResidualRisk}
           subtitle="Requires sign-off"
-          variant={stats.criticalResidualRisk > 0 ? "danger" : "default"}
+          variant={stats.veryHighResidualRisk > 0 ? "danger" : "default"}
         />
         <KpiCard
-          title="Overdue Assessments"
-          value={stats.overdueAssessments}
-          subtitle="Action required"
-          variant="warning"
+          title="Overdue Reviews"
+          value={stats.overdueReviews}
+          subtitle="Past next review date"
+          variant={stats.overdueReviews > 0 ? "warning" : "default"}
+          href="/vendors?review=overdue"
         />
-        <KpiCard title="Due in 90 Days" value={stats.dueIn90Days} subtitle="Schedule renewal" />
+        <KpiCard
+          title="Due in 90 Days"
+          value={stats.dueIn90Days}
+          subtitle="Schedule renewal"
+          href="/vendors?review=due90"
+        />
+        <KpiCard
+          title="Open Incidents"
+          value={stats.openIncidents}
+          subtitle={`${stats.criticalOpenIncidents} high or critical`}
+          variant={stats.criticalOpenIncidents > 0 ? "danger" : "default"}
+          href="/incidents?status=Open"
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -68,14 +86,16 @@ export default async function DashboardPage() {
           <div>
             <CardTitle className="card-title-serif">Overdue Reviews</CardTitle>
             <p className="mt-1 text-xs text-muted-foreground">
-              Same overdue vendors as the Vendors tab, most overdue first
+              {stats.overdueReviews > 8
+                ? `Top 8 of ${stats.overdueReviews} overdue vendors, most overdue first`
+                : "Most overdue first"}
             </p>
           </div>
           <Link
-            href="/vendors"
+            href="/vendors?review=overdue"
             className="text-sm font-medium text-foreground hover:underline"
           >
-            View all vendors →
+            View all overdue →
           </Link>
         </CardHeader>
         <CardContent className="p-0">

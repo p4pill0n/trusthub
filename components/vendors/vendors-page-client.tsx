@@ -10,15 +10,19 @@ interface VendorsPageClientProps {
   vendors: Vendor[];
   experts?: Expert[];
   initialSearch?: string;
+  initialNextReview?: string;
 }
 
 export function VendorsPageClient({
   vendors,
   experts = [],
   initialSearch = "",
+  initialNextReview = "all",
 }: VendorsPageClientProps) {
   const [filteredCount, setFilteredCount] = useState(vendors.length);
-  const [filtersActive, setFiltersActive] = useState(Boolean(initialSearch));
+  const [filtersActive, setFiltersActive] = useState(
+    Boolean(initialSearch) || initialNextReview !== "all"
+  );
   const [clearSignal, setClearSignal] = useState(0);
 
   const handleFilteredChange = useCallback((count: number) => {
@@ -52,6 +56,7 @@ export function VendorsPageClient({
           variant="full"
           enableColumnFilters
           initialSearch={initialSearch}
+          initialNextReview={initialNextReview}
           clearFiltersSignal={clearSignal}
           onFilteredChange={handleFilteredChange}
           onFiltersActiveChange={handleFiltersActiveChange}

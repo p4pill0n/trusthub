@@ -7,7 +7,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE vendors (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name TEXT NOT NULL,
-  entity_name TEXT NOT NULL, -- bank internal entity: France, UK, AMER, ASIA
+  entity_name TEXT NOT NULL, -- bank internal entity: France, UK, AMER, ASIA, India
   type TEXT NOT NULL CHECK (type IN ('SaaS', 'On-Premise Software', 'Consulting', 'Payroll', 'Cloud Infrastructure', 'Market Data', 'Managed Services')),
   datacontact_name TEXT NOT NULL,
   contact_email TEXT NOT NULL,
@@ -29,7 +29,8 @@ CREATE TABLE assessments (
   vendor_id UUID NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
   launched_at TIMESTAMPTZ,
   completed_at TIMESTAMPTZ,
-  status TEXT NOT NULL DEFAULT 'Pending' CHECK (status IN ('Pending', 'In Progress', 'Completed', 'Overdue')),
+  -- "Overdue" is derived in the app from launched_at, not stored.
+  status TEXT NOT NULL DEFAULT 'Pending' CHECK (status IN ('Pending', 'In Progress', 'Completed')),
   risk_score INTEGER CHECK (risk_score >= 0 AND risk_score <= 100),
   assessor_notes TEXT,
   questionnaire_token TEXT UNIQUE,
@@ -91,7 +92,7 @@ CREATE TABLE fourth_parties (
   parent_vendor_id UUID NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   service_description TEXT,
-  risk_level TEXT NOT NULL CHECK (risk_level IN ('Low', 'Medium', 'High', 'Critical')),
+  risk_level TEXT NOT NULL CHECK (risk_level IN ('Low', 'Medium', 'High', 'Very High')),
   country TEXT,
   user_id UUID REFERENCES auth.users(id)
 );
@@ -224,6 +225,15 @@ CREATE POLICY "Anon can insert remediations for demo"
 CREATE POLICY "Anon can update remediations for demo"
   ON remediations FOR UPDATE TO anon USING (true);
 
+CREATE POLICY "Anon can insert security_incidents for demo"
+  ON security_incidents FOR INSERT TO anon WITH CHECK (true);
+
+CREATE POLICY "Anon can update security_incidents for demo"
+  ON security_incidents FOR UPDATE TO anon USING (true);
+
+CREATE POLICY "Anon can update interconnections for demo"
+  ON interconnections FOR UPDATE TO anon USING (true);
+
 -- ---------------------------------------------------------------------------
 -- TPRM policy settings
 -- ---------------------------------------------------------------------------
@@ -300,3 +310,76 @@ CREATE TABLE broadcast_recipients (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE (broadcast_id, vendor_id)
 );
+
+ALTER TABLE broadcasts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE broadcast_recipients ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Authenticated users can read broadcasts"
+  ON broadcasts FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Users can insert broadcasts"
+  ON broadcasts FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Users can update broadcasts"
+  ON broadcasts FOR UPDATE TO authenticated USING (true);
+CREATE POLICY "Users can delete broadcasts"
+  ON broadcasts FOR DELETE TO authenticated USING (true);
+
+CREATE POLICY "Anon can read broadcasts for demo"
+  ON broadcasts FOR SELECT TO anon USING (true);
+CREATE POLICY "Anon can insert broadcasts for demo"
+  ON broadcasts FOR INSERT TO anon WITH CHECK (true);
+CREATE POLICY "Anon can update broadcasts for demo"
+  ON broadcasts FOR UPDATE TO anon USING (true);
+CREATE POLICY "Anon can delete broadcasts for demo"
+  ON broadcasts FOR DELETE TO anon USING (true);
+
+CREATE POLICY "Authenticated users can read broadcast_recipients"
+  ON broadcast_recipients FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Users can insert broadcast_recipients"
+  ON broadcast_recipients FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Users can update broadcast_recipients"
+  ON broadcast_recipients FOR UPDATE TO authenticated USING (true);
+CREATE POLICY "Users can delete broadcast_recipients"
+  ON broadcast_recipients FOR DELETE TO authenticated USING (true);
+
+CREATE POLICY "Anon can read broadcast_recipients for demo"
+  ON broadcast_recipients FOR SELECT TO anon USING (true);
+CREATE POLICY "Anon can insert broadcast_recipients for demo"
+  ON broadcast_recipients FOR INSERT TO anon WITH CHECK (true);
+CREATE POLICY "Anon can update broadcast_recipients for demo"
+  ON broadcast_recipients FOR UPDATE TO anon USING (true);
+CREATE POLICY "Anon can delete broadcast_recipients for demo"
+  ON broadcast_recipients FOR DELETE TO anon USING (true);
+
+-- Expert contacts (one per region and domain)
+CREATE TABLE experts (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  region TEXT NOT NULL CHECK (region IN ('France', 'UK', 'AMER', 'ASIA', 'India')),
+  domain TEXT NOT NULL CHECK (domain IN ('TPRM', 'Cyber', 'BCM', 'Operational Risk', 'Legal', 'Compliance')),
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  title TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  user_id UUID,
+  UNIQUE (region, domain)
+);
+
+ALTER TABLE experts ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Authenticated users can read experts"
+  ON experts FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Users can insert experts"
+  ON experts FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Users can update experts"
+  ON experts FOR UPDATE TO authenticated USING (true);
+CREATE POLICY "Users can delete experts"
+  ON experts FOR DELETE TO authenticated USING (true);
+
+CREATE POLICY "Anon can read experts for demo"
+  ON experts FOR SELECT TO anon USING (true);
+CREATE POLICY "Anon can insert experts for demo"
+  ON experts FOR INSERT TO anon WITH CHECK (true);
+CREATE POLICY "Anon can update experts for demo"
+  ON experts FOR UPDATE TO anon USING (true);
+CREATE POLICY "Anon can delete experts for demo"
+  ON experts FOR DELETE TO anon USING (true);

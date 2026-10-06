@@ -20,7 +20,8 @@ import type {
   InherentRisk,
   Vendor,
 } from "@/types";
-import { Megaphone } from "lucide-react";
+import Link from "next/link";
+import { Mail, Megaphone } from "lucide-react";
 
 interface CreateBroadcastClientProps {
   vendors: Vendor[];
@@ -52,7 +53,10 @@ export function CreateBroadcastClient({ vendors }: CreateBroadcastClientProps) {
   const [followUpDueDate, setFollowUpDueDate] = useState("");
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [success, setSuccess] = useState<{
+    recipientCount: number;
+    mailtoHref: string | null;
+  } | null>(null);
 
   const audienceCount = useMemo(() => {
     if (audience === "All active vendors") return vendors.length;
@@ -73,27 +77,39 @@ export function CreateBroadcastClient({ vendors }: CreateBroadcastClientProps) {
     setError(null);
     setSuccess(null);
     startTransition(async () => {
-      const result = await createBroadcast({
-        title,
-        message,
-        broadcast_type: broadcastType,
-        audience,
-        audience_risk: audience === "By inherent risk" ? audienceRisk : null,
-        vendor_ids: audience === "Selected vendors" ? selectedVendorIds : undefined,
-        follow_up_due_date: followUpDueDate || null,
-      });
+      try {
+        const result = await createBroadcast({
+          title,
+          message,
+          broadcast_type: broadcastType,
+          audience,
+          audience_risk: audience === "By inherent risk" ? audienceRisk : null,
+          vendor_ids: audience === "Selected vendors" ? selectedVendorIds : undefined,
+          follow_up_due_date: followUpDueDate || null,
+        });
 
-      if (!result.ok) {
-        setError(result.error);
-        return;
+        if (!result.ok) {
+          setError(result.error);
+          return;
+        }
+
+        const emails = result.recipientEmails.filter(Boolean);
+        setSuccess({
+          recipientCount: result.recipientCount,
+          mailtoHref: emails.length
+            ? `mailto:?bcc=${encodeURIComponent(emails.join(","))}&subject=${encodeURIComponent(
+                title.trim()
+              )}&body=${encodeURIComponent(message.trim())}`
+            : null,
+        });
+        setTitle("");
+        setMessage("");
+        setSelectedVendorIds([]);
+        setFollowUpDueDate("");
+        router.refresh();
+      } catch {
+        setError("Failed to create broadcast. Please try again.");
       }
-
-      setSuccess(`Broadcast sent to ${result.recipientCount} vendor${result.recipientCount === 1 ? "" : "s"}.`);
-      setTitle("");
-      setMessage("");
-      setSelectedVendorIds([]);
-      setFollowUpDueDate("");
-      router.refresh();
     });
   }
 
@@ -240,13 +256,34 @@ export function CreateBroadcastClient({ vendors }: CreateBroadcastClientProps) {
             </p>
             <div className="flex items-center gap-3">
               {error && <p className="text-sm text-red-600">{error}</p>}
-              {success && <p className="text-sm text-emerald-700">{success}</p>}
-              <Button onClick={handleSubmit} disabled={isPending || !title.trim() || !message.trim()}>
+              <Button
+                onClick={handleSubmit}
+                disabled={isPending || !title.trim() || !message.trim() || audienceCount === 0}
+              >
                 <Megaphone className="h-4 w-4" />
-                {isPending ? "Sending..." : "Send broadcast"}
+                {isPending ? "Saving..." : "Log broadcast"}
               </Button>
             </div>
           </div>
+          {success && (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+              <span>
+                Broadcast logged for {success.recipientCount} vendor
+                {success.recipientCount === 1 ? "" : "s"}. Emails are not sent automatically.
+              </span>
+              <div className="flex items-center gap-3">
+                {success.mailtoHref && (
+                  <a href={success.mailtoHref} className="inline-flex items-center gap-1 font-medium underline">
+                    <Mail className="h-3.5 w-3.5" />
+                    Email recipients
+                  </a>
+                )}
+                <Link href="/broadcast/follow-up" className="font-medium underline">
+                  Open follow-up
+                </Link>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -260,7 +297,12 @@ export function CreateBroadcastClient({ vendors }: CreateBroadcastClientProps) {
         <CardContent className="space-y-3 text-sm text-muted-foreground">
           <p>Use this for policy changes, assessment reminders, or incident notices.</p>
           <p>
-            After sending, open <span className="font-medium text-foreground">Follow-up</span> to
+            TrustHub records the broadcast but does not send email itself. Use{" "}
+            <span className="font-medium text-foreground">Email recipients</span> after logging to
+            open a pre-filled message in your mail client.
+          </p>
+          <p>
+            Afterwards, open <span className="font-medium text-foreground">Follow-up</span> to
             update recipient status and add notes.
           </p>
         </CardContent>

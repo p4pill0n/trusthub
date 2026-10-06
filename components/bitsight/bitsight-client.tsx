@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { VendorNameCell } from "@/components/vendors/vendor-name-cell";
-import { getBitSightColor, formatDateTime } from "@/lib/utils";
+import { getBitSightColor, getBitSightScorePercent, formatDateTime } from "@/lib/utils";
 import type { BitSightRatingRecord } from "@/types";
 
 interface BitSightClientProps {
@@ -31,12 +31,13 @@ export function BitSightClient({ ratings }: BitSightClientProps) {
         </TableHeader>
         <TableBody>
           {ratings.map((r) => {
-            const color = getBitSightColor(r.score);
-            const pct = (r.score / 900) * 100;
+            const color = getBitSightColor(r.rating);
+            const pct = getBitSightScorePercent(r.score);
             return (
               <TableRow key={r.id}>
                 <TableCell className="font-medium">
                   <VendorNameCell
+                    vendorId={r.vendor_id}
                     name={r.vendors?.name}
                     contactEmail={r.vendors?.contact_email}
                   />

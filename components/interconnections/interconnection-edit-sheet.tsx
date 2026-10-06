@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { saveInterconnections } from "@/lib/actions";
+import { updateInterconnection } from "@/lib/actions";
 import type { ConnectionDirection, ConnectionType, Interconnection } from "@/types";
 
 interface InterconnectionEditSheetProps {
@@ -48,20 +48,21 @@ export function InterconnectionEditSheet({
   function handleSave() {
     setError(null);
     startTransition(async () => {
-      const result = await saveInterconnections([
-        {
-          id: interconnection.id,
+      try {
+        const result = await updateInterconnection(interconnection.id, {
           direction,
           connection_type: connectionType,
           description,
-        },
-      ]);
-      if (!result.ok) {
-        setError(result.error);
-        return;
+        });
+        if (!result.ok) {
+          setError(result.error);
+          return;
+        }
+        onOpenChange(false);
+        router.refresh();
+      } catch {
+        setError("Failed to save interconnection.");
       }
-      onOpenChange(false);
-      router.refresh();
     });
   }
 
@@ -74,7 +75,7 @@ export function InterconnectionEditSheet({
             <p className="font-medium">{interconnection.vendors?.name ?? "Vendor"}</p>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Data Type</p>
+            <p className="text-sm text-muted-foreground">Vendor data type</p>
             <p className="font-medium">{interconnection.vendors?.data_type ?? "—"}</p>
           </div>
 

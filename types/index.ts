@@ -12,7 +12,9 @@ export type DataClassification = "C0" | "C1" | "C2" | "C3";
 export type InherentRisk = "Low" | "Medium" | "High" | "Very High";
 export type ResidualRisk = "Low" | "Medium" | "High" | "Very High";
 export type VendorStatus = "Active" | "Offboarded" | "Under Review";
-export type AssessmentStatus = "Pending" | "In Progress" | "Completed" | "Overdue";
+export type StoredAssessmentStatus = "Pending" | "In Progress" | "Completed";
+/** "Overdue" is derived: an open questionnaire past its response window. */
+export type AssessmentStatus = StoredAssessmentStatus | "Overdue";
 export type IncidentSeverity = "Low" | "Medium" | "High" | "Critical";
 export type IncidentStatus = "Open" | "Resolved";
 export type BitSightRating = "Advanced" | "Intermediate" | "Basic" | "Beginners";
@@ -45,13 +47,13 @@ export interface Assessment {
   vendor_id: string;
   launched_at: string | null;
   completed_at: string | null;
-  status: AssessmentStatus;
+  status: StoredAssessmentStatus;
   risk_score: number | null;
   assessor_notes: string | null;
   questionnaire_token: string | null;
   responses: Record<string, string> | null;
   user_id?: string | null;
-  vendors?: Pick<Vendor, "name" | "contact_email"> | null;
+  vendors?: Pick<Vendor, "name" | "contact_email" | "status"> | null;
 }
 
 export interface SecurityIncident {
@@ -99,7 +101,18 @@ export interface Remediation {
   owner: string | null;
   evidence: string | null;
   user_id?: string | null;
-  vendors?: Pick<Vendor, "name" | "contact_email">;
+  vendors?: Pick<Vendor, "name" | "contact_email"> | null;
+  assessments?: Pick<Assessment, "launched_at" | "completed_at"> | null;
+}
+
+export interface VendorActivity {
+  assessments: Pick<
+    Assessment,
+    "id" | "status" | "launched_at" | "completed_at" | "risk_score"
+  >[];
+  remediations: Pick<Remediation, "id" | "title" | "status" | "priority" | "due_date">[];
+  incidents: Pick<SecurityIncident, "id" | "title" | "severity" | "status" | "detected_at">[];
+  bitsight: Pick<BitSightRatingRecord, "score" | "rating" | "fetched_at"> | null;
 }
 
 export interface FourthParty {
@@ -123,9 +136,12 @@ export interface RankedFourthParty {
 
 export interface DashboardStats {
   totalVendors: number;
-  criticalResidualRisk: number;
-  overdueAssessments: number;
+  newVendorsLast90Days: number;
+  veryHighResidualRisk: number;
+  overdueReviews: number;
   dueIn90Days: number;
+  openIncidents: number;
+  criticalOpenIncidents: number;
   inherentRiskDistribution: { name: string; value: number; color: string }[];
   vendorTypes: { name: string; value: number }[];
   assessmentPipeline: { name: string; value: number; color: string }[];

@@ -19,19 +19,24 @@ import {
 import { Button } from "@/components/ui/button";
 import { VendorAvatar } from "@/components/vendors/vendor-avatar";
 import { ViewBroadcastMessageDialog } from "@/components/broadcast/view-broadcast-message-dialog";
-import { deleteBroadcast, updateBroadcastRecipientStatus } from "@/lib/actions";
-import { cn, formatDate } from "@/lib/utils";
+import {
+  deleteBroadcast,
+  updateBroadcastRecipientNotes,
+  updateBroadcastRecipientStatus,
+} from "@/lib/actions";
+import { cn, formatDate, isPastDate } from "@/lib/utils";
 import type {
   Broadcast,
   BroadcastRecipient,
   BroadcastRecipientStatus,
 } from "@/types";
 import { ArrowLeft, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 interface BroadcastFollowUpClientProps {
   broadcasts: Broadcast[];
   recipients: BroadcastRecipient[];
+  initialCampaignId?: string | null;
 }
 
 const STATUS_OPTIONS: BroadcastRecipientStatus[] = [
@@ -55,14 +60,56 @@ function statusClass(status: BroadcastRecipientStatus) {
 export function BroadcastFollowUpClient({
   broadcasts,
   recipients,
+  initialCampaignId = null,
 }: BroadcastFollowUpClientProps) {
   const router = useRouter();
-  const [selectedBroadcastId, setSelectedBroadcastId] = useState<string | null>(null);
+  const pathname = usePathname();
+  const [selectedBroadcastId, setSelectedBroadcastIdState] = useState<string | null>(
+    initialCampaignId
+  );
   const [statusFilter, setStatusFilter] = useState("all");
   const [notesDraft, setNotesDraft] = useState<Record<string, string>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [pendingIds, setPendingIds] = useState<Set<string>>(() => new Set());
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [isDeleting, startDeleteTransition] = useTransition();
+
+  function setSelectedBroadcastId(id: string | null) {
+    setSelectedBroadcastIdState(id);
+    setStatusFilter("all");
+    router.replace(id ? `${pathname}?campaign=${id}` : pathname, { scroll: false });
+  }
+
+  function setRowPending(id: string, pending: boolean) {
+    setPendingIds((prev) => {
+      const next = new Set(prev);
+      if (pending) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
+
+  async function runRowUpdate(id: string, update: () => Promise<{ ok: boolean; error?: string }>) {
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+    setRowPending(id, true);
+    try {
+      const result = await update();
+      if (!result.ok) {
+        setErrors((prev) => ({ ...prev, [id]: result.error ?? "Failed to save." }));
+        return false;
+      }
+      return true;
+    } catch {
+      setErrors((prev) => ({ ...prev, [id]: "Failed to save." }));
+      return false;
+    } finally {
+      setRowPending(id, false);
+    }
+  }
 
   const campaignStats = useMemo(() => {
     const map = new Map<
@@ -103,28 +150,30 @@ export function BroadcastFollowUpClient({
   }, [campaignRecipients, statusFilter]);
 
   function handleStatusChange(id: string, status: BroadcastRecipientStatus) {
-    setErrors((prev) => {
-      const next = { ...prev };
-      delete next[id];
-      return next;
-    });
-    startTransition(async () => {
-      const result = await updateBroadcastRecipientStatus(id, status, notesDraft[id]);
-      if (!result.ok) {
-        setErrors((prev) => ({ ...prev, [id]: result.error }));
-      }
-    });
+    void runRowUpdate(id, () => updateBroadcastRecipientStatus(id, status));
   }
 
-  function handleNotesBlur(id: string, status: BroadcastRecipientStatus) {
-    const notes = notesDraft[id];
+  async function handleNotesBlur(recipient: BroadcastRecipient) {
+    const notes = notesDraft[recipient.id];
     if (notes === undefined) return;
-    startTransition(async () => {
-      const result = await updateBroadcastRecipientStatus(id, status, notes);
-      if (!result.ok) {
-        setErrors((prev) => ({ ...prev, [id]: result.error }));
-      }
-    });
+    if (notes.trim() === (recipient.follow_up_notes ?? "").trim()) {
+      setNotesDraft((prev) => {
+        const next = { ...prev };
+        delete next[recipient.id];
+        return next;
+      });
+      return;
+    }
+    const saved = await runRowUpdate(recipient.id, () =>
+      updateBroadcastRecipientNotes(recipient.id, notes)
+    );
+    if (saved) {
+      setNotesDraft((prev) => {
+        const next = { ...prev };
+        delete next[recipient.id];
+        return next;
+      });
+    }
   }
 
   function handleDeleteBroadcast(id: string, title: string) {
@@ -134,18 +183,25 @@ export function BroadcastFollowUpClient({
     if (!confirmed) return;
 
     setDeleteError(null);
-    startTransition(async () => {
-      const result = await deleteBroadcast(id);
-      if (!result.ok) {
-        setDeleteError(result.error);
-        return;
+    startDeleteTransition(async () => {
+      try {
+        const result = await deleteBroadcast(id);
+        if (!result.ok) {
+          setDeleteError(result.error);
+          return;
+        }
+        if (selectedBroadcastId === id) {
+          setSelectedBroadcastId(null);
+        }
+        router.refresh();
+      } catch {
+        setDeleteError("Failed to delete broadcast.");
       }
-      if (selectedBroadcastId === id) {
-        setSelectedBroadcastId(null);
-      }
-      router.refresh();
     });
   }
+
+  const followUpPastDue =
+    selectedBroadcast?.follow_up_due_date != null && isPastDate(selectedBroadcast.follow_up_due_date);
 
   if (!selectedBroadcast) {
     return (
@@ -208,7 +264,14 @@ export function BroadcastFollowUpClient({
                     <TableCell className="text-sm text-muted-foreground">
                       {formatDate(broadcast.sent_at)}
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
+                    <TableCell
+                      className={cn(
+                        "text-sm text-muted-foreground",
+                        stats.ongoing > 0 &&
+                          isPastDate(broadcast.follow_up_due_date) &&
+                          "font-medium text-red-600"
+                      )}
+                    >
                       {formatDate(broadcast.follow_up_due_date)}
                     </TableCell>
                     <TableCell className="text-sm font-medium">{stats.total}</TableCell>
@@ -240,7 +303,7 @@ export function BroadcastFollowUpClient({
                           variant="outline"
                           size="sm"
                           className="text-red-600 hover:bg-red-50 hover:text-red-700"
-                          disabled={isPending}
+                          disabled={isDeleting}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleDeleteBroadcast(broadcast.id, broadcast.title);
@@ -315,7 +378,7 @@ export function BroadcastFollowUpClient({
             variant="outline"
             size="sm"
             className="text-red-600 hover:bg-red-50 hover:text-red-700"
-            disabled={isPending}
+            disabled={isDeleting}
             onClick={() =>
               handleDeleteBroadcast(selectedBroadcast.id, selectedBroadcast.title)
             }
@@ -368,7 +431,7 @@ export function BroadcastFollowUpClient({
                       onValueChange={(value) =>
                         handleStatusChange(recipient.id, value as BroadcastRecipientStatus)
                       }
-                      disabled={isPending}
+                      disabled={pendingIds.has(recipient.id)}
                     >
                       <SelectTrigger className={cn("h-9 w-44", statusClass(recipient.status))}>
                         <SelectValue />
@@ -381,6 +444,11 @@ export function BroadcastFollowUpClient({
                         ))}
                       </SelectContent>
                     </Select>
+                    {followUpPastDue && recipient.status === "Ongoing" && (
+                      <p className="mt-1 text-[11px] font-medium text-red-600">
+                        Follow-up past due
+                      </p>
+                    )}
                     {errors[recipient.id] && (
                       <p className="mt-1 text-[11px] text-red-600">{errors[recipient.id]}</p>
                     )}
@@ -391,7 +459,7 @@ export function BroadcastFollowUpClient({
                       onChange={(e) =>
                         setNotesDraft((prev) => ({ ...prev, [recipient.id]: e.target.value }))
                       }
-                      onBlur={() => handleNotesBlur(recipient.id, recipient.status)}
+                      onBlur={() => void handleNotesBlur(recipient)}
                       placeholder="Add follow-up note…"
                       className="h-9 w-full min-w-[180px] rounded-md border border-input bg-background px-3 text-sm"
                     />

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import Link from "next/link";
 import {
   Select,
   SelectContent,
@@ -22,39 +23,64 @@ import { TriggerAssessmentModal } from "@/components/risk-assessment/trigger-ass
 import { DeleteAssessmentButton } from "@/components/risk-assessment/delete-assessment-button";
 import { ViewQuestionnaireDialog } from "@/components/risk-assessment/view-questionnaire-dialog";
 import { VendorNameCell } from "@/components/vendors/vendor-name-cell";
+import {
+  ASSESSMENT_RESPONSE_DAYS,
+  getAssessmentDisplayStatus,
+  isAssessmentOpen,
+} from "@/lib/assessment-status";
 import { formatDate } from "@/lib/utils";
-import type { Assessment, Vendor } from "@/types";
+import type { Assessment, AssessmentStatus, Vendor } from "@/types";
 
 interface RiskAssessmentClientProps {
   assessments: Assessment[];
   vendors: Vendor[];
+  preselectedVendorId?: string;
 }
 
-export function RiskAssessmentClient({ assessments, vendors }: RiskAssessmentClientProps) {
+const STATUS_FILTERS: AssessmentStatus[] = ["Pending", "In Progress", "Overdue", "Completed"];
+
+export function RiskAssessmentClient({
+  assessments,
+  vendors,
+  preselectedVendorId,
+}: RiskAssessmentClientProps) {
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const filtered = assessments.filter((a) => {
-    if (statusFilter !== "all" && a.status !== statusFilter) return false;
-    return true;
-  });
+  const rows = useMemo(
+    () =>
+      assessments.map((assessment) => ({
+        assessment,
+        displayStatus: getAssessmentDisplayStatus(assessment),
+      })),
+    [assessments]
+  );
+
+  const filtered = rows.filter(
+    ({ displayStatus }) => statusFilter === "all" || displayStatus === statusFilter
+  );
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All status</SelectItem>
-            {["Pending", "In Progress", "Completed", "Overdue"].map((s) => (
-              <SelectItem key={s} value={s}>
-                {s}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <TriggerAssessmentModal vendors={vendors} />
+        <div className="flex items-center gap-3">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All status</SelectItem>
+              {STATUS_FILTERS.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">
+            Open questionnaires become overdue {ASSESSMENT_RESPONSE_DAYS} days after launch.
+          </p>
+        </div>
+        <TriggerAssessmentModal vendors={vendors} preselectedVendorId={preselectedVendorId} />
       </div>
 
       <div className="rounded-lg border border-border/80 bg-white">
@@ -73,18 +99,13 @@ export function RiskAssessmentClient({ assessments, vendors }: RiskAssessmentCli
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.map((assessment) => {
+            {filtered.map(({ assessment, displayStatus }) => {
               const vendorName = assessment.vendors?.name ?? "Vendor";
-              const hasResponses =
-                assessment.responses !== null &&
-                Object.keys(assessment.responses).length > 0;
-              const showResponses =
-                assessment.status === "Completed" ||
-                hasResponses ||
-                assessment.risk_score !== null;
+              const isOpen = isAssessmentOpen(assessment);
+              const vendorOffboarded = assessment.vendors?.status === "Offboarded";
               const dialogProps = {
                 vendorName,
-                mode: showResponses ? ("responses" as const) : ("preview" as const),
+                mode: isOpen ? ("preview" as const) : ("responses" as const),
                 responses: assessment.responses,
                 riskScore: assessment.risk_score,
               };
@@ -93,12 +114,13 @@ export function RiskAssessmentClient({ assessments, vendors }: RiskAssessmentCli
                 <TableRow key={assessment.id}>
                   <TableCell className="font-medium">
                     <VendorNameCell
+                      vendorId={assessment.vendor_id}
                       name={assessment.vendors?.name}
                       contactEmail={assessment.vendors?.contact_email}
                     />
                   </TableCell>
                   <TableCell>
-                    <AssessmentStatusBadge status={assessment.status} />
+                    <AssessmentStatusBadge status={displayStatus} />
                   </TableCell>
                   <TableCell>{formatDate(assessment.launched_at)}</TableCell>
                   <TableCell>{formatDate(assessment.completed_at)}</TableCell>
@@ -119,8 +141,19 @@ export function RiskAssessmentClient({ assessments, vendors }: RiskAssessmentCli
                   <TableCell>
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                       <ViewQuestionnaireDialog {...dialogProps} />
-                      {assessment.status !== "Completed" && (
+                      {isOpen && !vendorOffboarded && (
                         <CopyQuestionnaireLink token={assessment.questionnaire_token} />
+                      )}
+                      {isOpen && vendorOffboarded && (
+                        <span className="text-xs text-muted-foreground">Vendor offboarded</span>
+                      )}
+                      {!isOpen && !vendorOffboarded && (
+                        <Link
+                          href={`/remediations?vendor=${assessment.vendor_id}&assessment=${assessment.id}`}
+                          className="text-sm font-medium text-foreground underline-offset-4 hover:underline"
+                        >
+                          Add remediation
+                        </Link>
                       )}
                     </div>
                   </TableCell>

@@ -1,0 +1,30 @@
+-- Add more remediations across the vendor portfolio
+
+INSERT INTO remediations (vendor_id, assessment_id, title, description, priority, status, due_date, owner, evidence)
+SELECT v.id, NULL, s.title, s.description, s.priority, s.status, s.due_date::date, s.owner, s.evidence
+FROM (VALUES
+  ('Microsoft', 'Enforce Conditional Access Policies', 'Require MFA and device compliance for all Azure AD privileged roles.', 'High', 'In Progress', '2026-11-15', 'Alexandre Petit', 'Conditional access drafted for admin roles. Broader rollout pending UAT.'),
+  ('Microsoft', 'Review Guest User Access', 'Remove stale guest accounts from Teams and SharePoint workspaces.', 'Medium', 'Open', '2026-12-01', 'Alexandre Petit', 'Remediation not yet started. Guest inventory export scheduled.'),
+  ('Murex', 'Harden Trading Platform Access', 'Restrict VPN admin access and enable session recording for Murex support accounts.', 'Critical', 'Open', '2026-10-30', 'Camille Roux', 'Remediation not yet started. Vendor change window requested for Q4.'),
+  ('Cisco', 'Disable Unused Network Services', 'Turn off unused management protocols on edge devices and enforce AAA logging.', 'High', 'In Progress', '2026-11-20', 'Mark Jensen', 'AAA logging enabled on 60% of devices. Remaining sites scheduled next weekend.'),
+  ('Cisco', 'Firmware Currency Review', 'Bring all firewall and switch firmware to approved baseline versions.', 'Medium', 'Open', '2026-12-15', 'Mark Jensen', 'Remediation not yet started. Baseline matrix under review with network ops.'),
+  ('FIS', 'Encrypt Batch File Transfers', 'Migrate remaining cleartext SFTP drops to TLS 1.2+ with key-based auth.', 'Critical', 'Open', '2026-11-05', 'Brian Walsh', 'Remediation not yet started. Coordination with FIS ops team in progress.'),
+  ('Fidessa', 'Segregate Trading Environments', 'Separate production and UAT Fidessa connectivity with dedicated credentials.', 'High', 'In Progress', '2026-11-28', 'Helen Grant', 'UAT credentials rotated. Production segregation design approved.'),
+  ('EquiLend', 'API Key Rotation', 'Rotate EquiLend API keys and store secrets in the enterprise vault.', 'Medium', 'Closed', '2026-09-15', 'Ryan Cooper', 'All API keys rotated and vaulted. Old keys revoked as of 2026-09-12.'),
+  ('ION Group', 'Limit Market Data Entitlements', 'Review and reduce excess market data entitlements on ION feeds.', 'Medium', 'Open', '2026-12-10', 'Laura Bennett', 'Remediation not yet started. Entitlement report requested from vendor.'),
+  ('Accenture', 'NDA and Data Handling Refresh', 'Update Accenture engagement NDAs to current bank data classification standards.', 'Low', 'In Progress', '2026-11-30', 'Tom Harris', 'Legal redlines exchanged. Awaiting Accenture countersignature.'),
+  ('Deloitte', 'Secure File Exchange Only', 'Mandate use of approved secure file exchange; retire ad-hoc email attachments.', 'Medium', 'Open', '2026-11-18', 'James Wilson', 'Remediation not yet started. Comms draft prepared for engagement leads.'),
+  ('BCD Travel', 'PII Minimization in Bookings', 'Remove unnecessary traveler PII fields from booking API payloads.', 'Medium', 'Open', '2026-12-05', 'Claire Dubois', 'Remediation not yet started. Data mapping with BCD product team booked.'),
+  ('COLT', 'Circuit Access Control Audit', 'Audit who can request and approve network circuit changes.', 'High', 'In Progress', '2026-11-12', 'Sophie Turner', 'Access list received from COLT. Internal owner sign-off outstanding for 4 accounts.'),
+  ('CrowdStrike', 'EDR Coverage Gaps', 'Deploy Falcon sensors to remaining unmanaged endpoints in ASIA region.', 'High', 'In Progress', '2026-10-25', 'David Kim', 'ASIA rollout at 78%. Remaining servers blocked on change freeze.'),
+  ('DocuSign', 'Envelope Retention Policy', 'Align DocuSign retention with bank records schedule and purge expired envelopes.', 'Low', 'Closed', '2026-08-20', 'Lisa Park', 'Retention policy configured and verified. Purge job completed 2026-08-18.'),
+  ('Zendesk', 'Admin Role Recertification', 'Quarterly recertification of Zendesk admin and light-agent roles.', 'Medium', 'Open', '2026-11-08', 'Kevin Wright', 'Remediation not yet started. Recertification campaign queued in IAM tool.'),
+  ('TOPdesk', 'SSO Enforcement', 'Disable local password login; require SSO for all TOPdesk operators.', 'High', 'Open', '2026-11-22', 'Jonas Vermeer', 'Remediation not yet started. IdP connector test planned for next sprint.'),
+  ('WPA', 'Encrypt Benefits Data at Rest', 'Confirm encryption at rest for all benefits member data stores.', 'High', 'In Progress', '2026-12-08', 'Emily Hughes', 'Vendor attestation received. Independent crypto validation scheduled.'),
+  ('Zellis', 'Privileged Access Review', 'Review Zellis privileged accounts used for payroll file submissions.', 'Medium', 'Open', '2026-11-25', 'Daniel Price', 'Remediation not yet started. Account inventory requested from vendor.'),
+  ('ServiceNow', 'Production Change Freeze Controls', 'Strengthen emergency change approvals for production ServiceNow updates.', 'Medium', 'Closed', '2026-09-30', 'Anders Lindqvist', 'Emergency change CAB rules updated and communicated to platform team.'),
+  ('Workday', 'Field-Level Encryption for SSN', 'Enable field-level encryption for national ID fields in Workday.', 'Critical', 'In Progress', '2026-12-20', 'Sarah Chen', 'Pilot enabled in sandbox. Production cutover targeted for December.'),
+  ('Bloomberg', 'Terminal Screen Capture Controls', 'Disable unauthorized screen capture on Bloomberg terminals where feasible.', 'Medium', 'Open', '2026-12-12', 'Rachel Green', 'Remediation not yet started. Feasibility note requested from Bloomberg support.'),
+  ('SAP', 'Privileged Role Recertification', 'Recertify SAP_ALL and similar powerful roles across production clients.', 'High', 'Open', '2026-11-10', 'Anna Mueller', 'Remediation not yet started. Role extract generated; owners assigned.')
+) AS s(vendor_name, title, description, priority, status, due_date, owner, evidence)
+JOIN vendors v ON v.name = s.vendor_name;

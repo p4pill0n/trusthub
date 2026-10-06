@@ -12,6 +12,10 @@ import {
   BarChart3,
   GitBranch,
   Layers,
+  ScrollText,
+  Megaphone,
+  ListChecks,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -20,6 +24,7 @@ interface NavItem {
   href: string;
   label: string;
   icon: LucideIcon;
+  external?: boolean;
 }
 
 interface NavSection {
@@ -32,9 +37,16 @@ const navSections: NavSection[] = [
     items: [
       { href: "/", label: "Dashboard", icon: LayoutDashboard },
       { href: "/vendors", label: "Vendors", icon: Building2 },
-      { href: "/risk-assessment", label: "Risk Assessments", icon: ClipboardList },
       { href: "/fourth-parties", label: "Fourth Parties", icon: Layers },
+      { href: "/risk-assessment", label: "Risk Assessments", icon: ClipboardList },
       { href: "/remediations", label: "Remediations", icon: Lightbulb },
+    ],
+  },
+  {
+    title: "Broadcast",
+    items: [
+      { href: "/broadcast/create", label: "Create Broadcast", icon: Megaphone },
+      { href: "/broadcast/follow-up", label: "Follow-up", icon: ListChecks },
     ],
   },
   {
@@ -43,6 +55,19 @@ const navSections: NavSection[] = [
       { href: "/incidents", label: "Security Incidents", icon: ShieldAlert },
       { href: "/bitsight", label: "BitSight Ratings", icon: BarChart3 },
       { href: "/interconnections", label: "Interconnections", icon: GitBranch },
+      {
+        href: "https://cisowatch.vercel.app/",
+        label: "CISO Watch",
+        icon: Shield,
+        external: true,
+      },
+    ],
+  },
+  {
+    title: "Settings",
+    items: [
+      { href: "/policy", label: "Policy", icon: ScrollText },
+      { href: "/experts", label: "Experts", icon: Users },
     ],
   },
 ];
@@ -57,24 +82,34 @@ function LinkedInIcon() {
   );
 }
 
-function NavLink({ href, label, icon: Icon }: NavItem) {
+function NavLink({ href, label, icon: Icon, external }: NavItem) {
   const pathname = usePathname();
-  const isActive = href === "/" ? pathname === "/" : pathname.startsWith(href);
+  const isActive = !external && (href === "/" ? pathname === "/" : pathname.startsWith(href));
+  const className = cn(
+    "flex items-center gap-3 rounded-md px-3 py-2.5 text-[13px] transition-colors",
+    isActive
+      ? "bg-white font-medium text-neutral-900 shadow-sm"
+      : "font-medium text-white/85 hover:bg-white/10 hover:text-white"
+  );
+  const icon = (
+    <Icon
+      className={cn("h-4 w-4 shrink-0", isActive ? "text-neutral-900" : "text-white/80")}
+      strokeWidth={isActive ? 2 : 1.75}
+    />
+  );
+
+  if (external) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
+        {icon}
+        <span>{label}</span>
+      </a>
+    );
+  }
 
   return (
-    <Link
-      href={href}
-      className={cn(
-        "flex items-center gap-3 rounded-md px-3 py-2.5 text-[13px] transition-colors",
-        isActive
-          ? "bg-white font-medium text-neutral-900 shadow-sm"
-          : "font-medium text-white/85 hover:bg-white/10 hover:text-white"
-      )}
-    >
-      <Icon
-        className={cn("h-4 w-4 shrink-0", isActive ? "text-neutral-900" : "text-white/80")}
-        strokeWidth={isActive ? 2 : 1.75}
-      />
+    <Link href={href} className={className}>
+      {icon}
       <span>{label}</span>
     </Link>
   );
@@ -127,7 +162,7 @@ export function Sidebar() {
 
       <div className="relative border-t border-blue-950/40 px-5 py-4">
         <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-white/35">
-          Your contact
+          Contact
         </p>
         <a
           href="https://www.linkedin.com/in/aureliengilles/"

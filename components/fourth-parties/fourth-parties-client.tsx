@@ -8,6 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { VendorAvatar } from "@/components/vendors/vendor-avatar";
 import type { RankedFourthParty } from "@/types";
 
 interface FourthPartiesClientProps {
@@ -44,7 +45,12 @@ export function FourthPartiesClient({ ranked }: FourthPartiesClientProps) {
           {ranked.map((fp, index) => (
             <TableRow key={fp.name}>
               <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
-              <TableCell className="font-medium">{fp.name}</TableCell>
+              <TableCell>
+                <div className="flex items-center gap-3">
+                  <VendorAvatar name={fp.name} size="sm" />
+                  <span className="font-medium text-foreground">{fp.name}</span>
+                </div>
+              </TableCell>
               <TableCell>
                 <span className="inline-flex min-w-[1.75rem] items-center justify-center rounded-full bg-neutral-100 px-2 py-0.5 text-sm font-semibold">
                   {fp.count}

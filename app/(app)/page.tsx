@@ -2,15 +2,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { DonutChart, VendorTypesChart, PipelineChart } from "@/components/dashboard/charts";
 import { VendorTable } from "@/components/vendors/vendor-table";
-import { getDashboardStats, getTopOverdueVendors } from "@/lib/queries";
+import { getDashboardStats, getExperts, getTopOverdueVendors } from "@/lib/queries";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const [stats, overdueVendors] = await Promise.all([
+  const [stats, overdueVendors, experts] = await Promise.all([
     getDashboardStats(),
     getTopOverdueVendors(8),
+    getExperts(),
   ]);
 
   return (
@@ -78,7 +79,7 @@ export default async function DashboardPage() {
           </Link>
         </CardHeader>
         <CardContent className="p-0">
-          <VendorTable vendors={overdueVendors} variant="compact" />
+          <VendorTable vendors={overdueVendors} experts={experts} variant="compact" />
         </CardContent>
       </Card>
     </div>

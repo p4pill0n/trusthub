@@ -1,7 +1,31 @@
 import { supabase } from "./supabase";
-import type { Assessment, Vendor, DashboardStats, RankedFourthParty } from "@/types";
+import type {
+  Assessment,
+  Vendor,
+  DashboardStats,
+  RankedFourthParty,
+  TprmPolicy,
+  Broadcast,
+  BroadcastRecipient,
+  Expert,
+} from "@/types";
 import { RISK_COLORS } from "./utils";
-import { differenceInDays, format, parseISO, startOfDay } from "date-fns";
+import { applyPolicyToVendors, withPolicyDefaults } from "./policy";
+import { differenceInDays, parseISO, startOfDay } from "date-fns";
+
+export async function getTprmPolicy(): Promise<TprmPolicy> {
+  const { data, error } = await supabase
+    .from("tprm_policy")
+    .select(
+      "id, review_months_low, review_months_medium, review_months_high, review_months_very_high, updated_at, user_id"
+    )
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+  return withPolicyDefaults(data);
+}
 
 export async function getVendors(filters?: {
   status?: string;
@@ -22,31 +46,33 @@ export async function getVendors(filters?: {
     );
   }
 
-  const { data, error } = await query;
+  const [{ data, error }, policy] = await Promise.all([query, getTprmPolicy()]);
   if (error) throw error;
-  return data ?? [];
+  return applyPolicyToVendors(data ?? [], policy);
 }
 
 export async function getTopOverdueVendors(limit = 8): Promise<Vendor[]> {
-  const today = format(startOfDay(new Date()), "yyyy-MM-dd");
-
-  const { data, error } = await supabase
-    .from("vendors")
-    .select("*")
-    .neq("status", "Offboarded")
-    .not("next_review_date", "is", null)
-    .lt("next_review_date", today)
-    .order("next_review_date", { ascending: true })
-    .limit(limit);
-
+  const [{ data, error }, policy] = await Promise.all([
+    supabase.from("vendors").select("*").neq("status", "Offboarded"),
+    getTprmPolicy(),
+  ]);
   if (error) throw error;
-  return data ?? [];
+
+  const today = startOfDay(new Date());
+  return applyPolicyToVendors(data ?? [], policy)
+    .filter((v) => {
+      if (!v.next_review_date) return false;
+      return startOfDay(parseISO(v.next_review_date.slice(0, 10))) < today;
+    })
+    .sort((a, b) => (a.next_review_date ?? "").localeCompare(b.next_review_date ?? ""))
+    .slice(0, limit);
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {
-  const [vendorsResult, remediationsResult] = await Promise.all([
+  const [vendorsResult, remediationsResult, policy] = await Promise.all([
     supabase.from("vendors").select("*").neq("status", "Offboarded"),
     supabase.from("remediations").select("status"),
+    getTprmPolicy(),
   ]);
 
   const { data: vendors, error } = vendorsResult;
@@ -54,7 +80,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   if (error) throw error;
   if (remediationsError) throw remediationsError;
 
-  const allVendors = vendors ?? [];
+  const allVendors = applyPolicyToVendors(vendors ?? [], policy);
   const today = startOfDay(new Date());
   const in90Days = new Date(today);
   in90Days.setDate(in90Days.getDate() + 90);
@@ -255,5 +281,64 @@ export async function getRankedFourthParties(): Promise<RankedFourthParty[]> {
     if (b.count !== a.count) return b.count - a.count;
     return a.name.localeCompare(b.name);
   });
+}
+
+export async function getBroadcasts(): Promise<Broadcast[]> {
+  const { data, error } = await supabase
+    .from("broadcasts")
+    .select("*, broadcast_recipients(count)")
+    .order("sent_at", { ascending: false });
+
+  if (error) throw error;
+
+  return (data ?? []).map((row) => {
+    const countRelation = row.broadcast_recipients as { count: number }[] | null;
+    const { broadcast_recipients: _ignored, ...broadcast } = row;
+    return {
+      ...(broadcast as Broadcast),
+      recipient_count: countRelation?.[0]?.count ?? 0,
+    };
+  });
+}
+
+export async function getBroadcastRecipients(filters?: {
+  status?: string;
+}): Promise<BroadcastRecipient[]> {
+  let query = supabase
+    .from("broadcast_recipients")
+    .select(
+      "*, vendors(name, contact_email, inherent_risk, entity_name), broadcasts(title, broadcast_type, sent_at, follow_up_due_date)"
+    )
+    .order("created_at", { ascending: false });
+
+  if (filters?.status && filters.status !== "all") {
+    query = query.eq("status", filters.status);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return (data as BroadcastRecipient[]) ?? [];
+}
+
+export async function getExperts(): Promise<Expert[]> {
+  const { data, error } = await supabase
+    .from("experts")
+    .select("*")
+    .order("region", { ascending: true })
+    .order("domain", { ascending: true });
+
+  if (error) throw error;
+  return (data as Expert[]) ?? [];
+}
+
+export async function getExpertsByRegion(region: string): Promise<Expert[]> {
+  const { data, error } = await supabase
+    .from("experts")
+    .select("*")
+    .eq("region", region)
+    .order("domain", { ascending: true });
+
+  if (error) throw error;
+  return (data as Expert[]) ?? [];
 }
 

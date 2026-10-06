@@ -1,4 +1,4 @@
-import { getVendors } from "@/lib/queries";
+import { getExperts, getVendors } from "@/lib/queries";
 import { VendorsPageClient } from "@/components/vendors/vendors-page-client";
 import { PageHeader } from "@/components/layout/page-header";
 
@@ -9,7 +9,7 @@ export default async function VendorsPage({
 }: {
   searchParams: { q?: string };
 }) {
-  const vendors = await getVendors();
+  const [vendors, experts] = await Promise.all([getVendors(), getExperts()]);
 
   return (
     <div className="space-y-7">
@@ -17,7 +17,11 @@ export default async function VendorsPage({
         title="Vendors"
         description="Full register of third-party vendors with risk classifications and review status."
       />
-      <VendorsPageClient vendors={vendors} initialSearch={searchParams.q ?? ""} />
+      <VendorsPageClient
+        vendors={vendors}
+        experts={experts}
+        initialSearch={searchParams.q ?? ""}
+      />
     </div>
   );
 }

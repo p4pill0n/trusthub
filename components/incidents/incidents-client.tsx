@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/table";
 import { RiskBadge, StatusBadge } from "@/components/shared/risk-badge";
 import { VendorNameCell } from "@/components/vendors/vendor-name-cell";
+import { IncidentActions } from "@/components/incidents/incident-actions";
 import { formatDateTime } from "@/lib/utils";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { Fragment } from "react";
@@ -42,20 +43,28 @@ export function IncidentsClient({ incidents }: IncidentsClientProps) {
     <div className="space-y-4">
       <div className="flex gap-3">
         <Select value={severityFilter} onValueChange={setSeverityFilter}>
-          <SelectTrigger className="w-40"><SelectValue placeholder="Severity" /></SelectTrigger>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Severity" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Severities</SelectItem>
             {["Low", "Medium", "High", "Critical"].map((s) => (
-              <SelectItem key={s} value={s}>{s}</SelectItem>
+              <SelectItem key={s} value={s}>
+                {s}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-36"><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectTrigger className="w-36">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
             {["Open", "Resolved"].map((s) => (
-              <SelectItem key={s} value={s}>{s}</SelectItem>
+              <SelectItem key={s} value={s}>
+                {s}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -65,13 +74,14 @@ export function IncidentsClient({ incidents }: IncidentsClientProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-8" />
+              <TableHead className="w-8" resizable={false} />
               <TableHead>Vendor</TableHead>
               <TableHead>Incident Title</TableHead>
               <TableHead>Severity</TableHead>
               <TableHead>Detected At</TableHead>
               <TableHead>Resolved At</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead className="w-10" resizable={false} />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -97,14 +107,21 @@ export function IncidentsClient({ incidents }: IncidentsClientProps) {
                     />
                   </TableCell>
                   <TableCell className="font-medium">{incident.title}</TableCell>
-                  <TableCell><RiskBadge level={incident.severity} /></TableCell>
+                  <TableCell>
+                    <RiskBadge level={incident.severity} />
+                  </TableCell>
                   <TableCell>{formatDateTime(incident.detected_at)}</TableCell>
                   <TableCell>{formatDateTime(incident.resolved_at)}</TableCell>
-                  <TableCell><StatusBadge status={incident.status} /></TableCell>
+                  <TableCell>
+                    <StatusBadge status={incident.status} />
+                  </TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    <IncidentActions incident={incident} />
+                  </TableCell>
                 </TableRow>
                 {expandedId === incident.id && (
                   <TableRow>
-                    <TableCell colSpan={7} className="bg-muted/30">
+                    <TableCell colSpan={8} className="bg-muted/30">
                       <p className="text-sm text-muted-foreground">
                         {incident.description ?? "No description available."}
                       </p>
@@ -115,7 +132,7 @@ export function IncidentsClient({ incidents }: IncidentsClientProps) {
             ))}
             {filtered.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={8} className="py-8 text-center text-muted-foreground">
                   No incidents found.
                 </TableCell>
               </TableRow>

@@ -34,6 +34,7 @@ export function TriggerAssessmentModal({ vendors }: TriggerAssessmentModalProps)
   const [createdToken, setCreatedToken] = useState<string | null>(null);
   const [createdUrl, setCreatedUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [alreadyExists, setAlreadyExists] = useState(false);
 
   function handleOpenChange(nextOpen: boolean) {
     setOpen(nextOpen);
@@ -42,19 +43,30 @@ export function TriggerAssessmentModal({ vendors }: TriggerAssessmentModalProps)
       setCreatedToken(null);
       setCreatedUrl(null);
       setError(null);
+      setAlreadyExists(false);
     }
   }
 
   function handleSubmit() {
     if (!vendorId) return;
     setError(null);
+    setAlreadyExists(false);
     startTransition(async () => {
       try {
         const result = await launchAssessment(vendorId);
+        if (!result.ok) {
+          setError(result.error);
+          if (result.existingToken) {
+            setAlreadyExists(true);
+            setCreatedToken(result.existingToken);
+            setCreatedUrl(result.existingUrl);
+          }
+          return;
+        }
         setCreatedToken(result.token);
         setCreatedUrl(result.url);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to create assessment.");
+      } catch {
+        setError("Failed to create assessment. Please try again.");
       }
     });
   }
@@ -67,7 +79,7 @@ export function TriggerAssessmentModal({ vendors }: TriggerAssessmentModalProps)
           Trigger assessment
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Trigger risk assessment</DialogTitle>
           <p className="text-sm text-muted-foreground">
@@ -78,13 +90,20 @@ export function TriggerAssessmentModal({ vendors }: TriggerAssessmentModalProps)
 
         {createdToken ? (
           <div className="space-y-4 py-2">
-            <p className="text-sm text-emerald-700">
-              Assessment created. Share the link below with the vendor partner.
-            </p>
+            {alreadyExists ? (
+              <p className="text-sm text-amber-700">
+                This vendor already has an open assessment. Share the existing questionnaire link
+                below.
+              </p>
+            ) : (
+              <p className="text-sm text-emerald-700">
+                Assessment created. Share the link below with the vendor partner.
+              </p>
+            )}
             <div className="space-y-2">
               <Label>Questionnaire link</Label>
-              <div className="flex items-center gap-2">
-                <code className="flex-1 truncate rounded-md border bg-muted/40 px-3 py-2 text-xs">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
+                <code className="min-w-0 flex-1 break-all rounded-md border bg-muted/40 px-3 py-2 text-xs leading-relaxed">
                   {createdUrl}
                 </code>
                 <CopyQuestionnaireLink token={createdToken} />

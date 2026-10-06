@@ -132,3 +132,78 @@ export interface DashboardStats {
   remediationsStatusDistribution: { name: string; value: number; color: string }[];
   totalRemediations: number;
 }
+
+export interface TprmPolicy {
+  id: string;
+  review_months_low: number;
+  review_months_medium: number;
+  review_months_high: number;
+  review_months_very_high: number;
+  updated_at: string | null;
+  user_id?: string | null;
+}
+
+export type TprmPolicyInput = Omit<TprmPolicy, "id" | "updated_at" | "user_id">;
+
+export type BroadcastType =
+  | "General"
+  | "Policy update"
+  | "Major vulnerability"
+  | "Incident notice";
+
+export type BroadcastAudience = "All active vendors" | "By inherent risk" | "Selected vendors";
+
+export type BroadcastStatus = "Draft" | "Sent";
+
+export type BroadcastRecipientStatus = "Compliant" | "Not Compliant" | "Ongoing";
+
+export interface Broadcast {
+  id: string;
+  title: string;
+  message: string;
+  broadcast_type: BroadcastType;
+  audience: BroadcastAudience;
+  audience_risk: InherentRisk | null;
+  status: BroadcastStatus;
+  sent_at: string | null;
+  follow_up_due_date: string | null;
+  created_at: string;
+  user_id?: string | null;
+  recipient_count?: number;
+}
+
+export interface BroadcastRecipient {
+  id: string;
+  broadcast_id: string;
+  vendor_id: string;
+  status: BroadcastRecipientStatus;
+  follow_up_notes: string | null;
+  followed_up_at: string | null;
+  responded_at: string | null;
+  created_at: string;
+  vendors?: Pick<Vendor, "name" | "contact_email" | "inherent_risk" | "entity_name"> | null;
+  broadcasts?: Pick<Broadcast, "title" | "broadcast_type" | "sent_at" | "follow_up_due_date"> | null;
+}
+
+export type ExpertRegion = "France" | "UK" | "AMER" | "ASIA" | "India";
+
+export type ExpertDomain =
+  | "TPRM"
+  | "Cyber"
+  | "BCM"
+  | "Operational Risk"
+  | "Legal"
+  | "Compliance";
+
+export interface Expert {
+  id: string;
+  region: ExpertRegion;
+  domain: ExpertDomain;
+  name: string;
+  email: string;
+  title: string | null;
+  created_at?: string;
+  updated_at?: string | null;
+  user_id?: string | null;
+}
+

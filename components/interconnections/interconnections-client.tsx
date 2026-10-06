@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { InterconnectionDiagram } from "@/components/interconnections/interconnection-diagram";
+import { InterconnectionActions } from "@/components/interconnections/interconnection-actions";
 import { ArrowRight, ArrowLeft, ArrowLeftRight } from "lucide-react";
 import type { Interconnection } from "@/types";
 
@@ -46,6 +47,7 @@ export function InterconnectionsClient({ interconnections }: InterconnectionsCli
                 <TableHead>Direction</TableHead>
                 <TableHead>Connection Type</TableHead>
                 <TableHead>Description</TableHead>
+                <TableHead className="w-10" resizable={false} />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -70,11 +72,14 @@ export function InterconnectionsClient({ interconnections }: InterconnectionsCli
                   <TableCell className="max-w-xs text-sm text-muted-foreground">
                     {ic.description}
                   </TableCell>
+                  <TableCell>
+                    <InterconnectionActions interconnection={ic} />
+                  </TableCell>
                 </TableRow>
               ))}
               {interconnections.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
+                  <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
                     No interconnections found.
                   </TableCell>
                 </TableRow>

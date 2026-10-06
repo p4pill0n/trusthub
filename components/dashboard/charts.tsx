@@ -10,6 +10,7 @@ import {
   XAxis,
   YAxis,
   Tooltip,
+  LabelList,
 } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RISK_COLORS } from "@/lib/utils";
@@ -89,7 +90,7 @@ export function VendorTypesChart({ title, description, data }: VendorTypesChartP
           <BarChart
             data={sorted}
             layout="vertical"
-            margin={{ top: 0, right: 16, left: 4, bottom: 0 }}
+            margin={{ top: 0, right: 28, left: 4, bottom: 0 }}
           >
             <XAxis type="number" hide />
             <YAxis
@@ -101,7 +102,14 @@ export function VendorTypesChart({ title, description, data }: VendorTypesChartP
               tickLine={false}
             />
             <Tooltip />
-            <Bar dataKey="value" fill="#1e3a5f" radius={[0, 3, 3, 0]} barSize={14} />
+            <Bar dataKey="value" fill="#1e3a5f" radius={[0, 3, 3, 0]} barSize={14}>
+              <LabelList
+                dataKey="value"
+                position="right"
+                className="fill-muted-foreground"
+                style={{ fontSize: 11, fontWeight: 500 }}
+              />
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </CardContent>
@@ -124,7 +132,7 @@ export function PipelineChart({ title, description, data }: PipelineChartProps) 
       </CardHeader>
       <CardContent className="pb-5">
         <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+          <BarChart data={data} margin={{ top: 18, right: 8, left: -16, bottom: 0 }}>
             <XAxis
               dataKey="name"
               tick={{ fontSize: 10, fill: "#71717a" }}
@@ -137,6 +145,12 @@ export function PipelineChart({ title, description, data }: PipelineChartProps) 
               {data.map((entry) => (
                 <Cell key={entry.name} fill={entry.color} />
               ))}
+              <LabelList
+                dataKey="value"
+                position="top"
+                className="fill-muted-foreground"
+                style={{ fontSize: 11, fontWeight: 500 }}
+              />
             </Bar>
           </BarChart>
         </ResponsiveContainer>

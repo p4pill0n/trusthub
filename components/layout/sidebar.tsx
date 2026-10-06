@@ -16,6 +16,7 @@ import {
   Megaphone,
   ListChecks,
   Users,
+  FileQuestion,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -67,6 +68,7 @@ const navSections: NavSection[] = [
     title: "Settings",
     items: [
       { href: "/policy", label: "Policy", icon: ScrollText },
+      { href: "/questionnaire", label: "Questionnaire", icon: FileQuestion },
       { href: "/experts", label: "Experts", icon: Users },
     ],
   },

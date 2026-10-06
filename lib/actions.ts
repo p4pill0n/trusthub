@@ -5,7 +5,7 @@ import { randomUUID } from "crypto";
 import { isValid, parseISO } from "date-fns";
 import { supabase } from "@/lib/supabase";
 import {
-  calculateRiskScore,
+  calculateSecurityScore,
   isCompleteResponseSet,
   type QuestionnaireAnswer,
 } from "@/lib/questionnaire";
@@ -290,7 +290,7 @@ export async function submitQuestionnaire(
     return fail("This questionnaire is no longer accepting responses.");
   }
 
-  const riskScore = calculateRiskScore(responses);
+  const riskScore = calculateSecurityScore(responses);
   const completedAt = new Date().toISOString();
 
   const { data: updated, error } = await supabase

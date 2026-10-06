@@ -9,14 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { ColumnSelectFilter, ColumnTextFilter } from "@/components/shared/column-filters";
 import { RiskBadge, StatusBadge } from "@/components/shared/risk-badge";
 import { VendorActions } from "@/components/vendors/vendor-actions";
 import { VendorNameLink } from "@/components/vendors/vendor-name-link";
@@ -120,56 +113,6 @@ interface VendorTableProps {
   onFilteredChange?: (count: number) => void;
   onFiltersActiveChange?: (active: boolean) => void;
   clearFiltersSignal?: number;
-}
-
-function ColumnTextFilter({
-  value,
-  onChange,
-  placeholder,
-}: {
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-}) {
-  return (
-    <Input
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder ?? "Filter…"}
-      className="h-8 px-2 text-xs"
-      onClick={(e) => e.stopPropagation()}
-    />
-  );
-}
-
-function ColumnSelectFilter({
-  value,
-  onChange,
-  placeholder,
-  options,
-}: {
-  value: string;
-  onChange: (value: string) => void;
-  placeholder: string;
-  options: { value: string; label: string }[];
-}) {
-  return (
-    <Select value={value} onValueChange={onChange}>
-      <SelectTrigger
-        className="h-8 px-2 text-xs"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <SelectValue placeholder={placeholder} />
-      </SelectTrigger>
-      <SelectContent>
-        {options.map((opt) => (
-          <SelectItem key={opt.value} value={opt.value}>
-            {opt.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  );
 }
 
 export function VendorTable({

@@ -114,7 +114,7 @@ export function QuestionnaireForm({
         <p className="text-muted-foreground">
           Thank you. Your third-party security risk questionnaire for {vendorName} has been
           received.
-          {submittedScore !== null ? ` Risk score: ${submittedScore}/100.` : ""}
+          {submittedScore !== null ? ` Security score: ${submittedScore}/100.` : ""}
         </p>
       </div>
     );

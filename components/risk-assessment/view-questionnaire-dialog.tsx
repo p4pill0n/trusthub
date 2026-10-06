@@ -79,12 +79,12 @@ export function ViewQuestionnaireDialog({
                 <>
                   {answeredCount} of {QUESTIONNAIRE_QUESTIONS.length} questions answered
                   {riskScore !== null && riskScore !== undefined
-                    ? ` · Risk score ${riskScore}/100`
+                    ? ` · Security score ${riskScore}/100`
                     : ""}
                 </>
               ) : (
                 <>
-                  Risk score {riskScore ?? "—"}/100. Detailed responses were not recorded for this
+                  Security score {riskScore ?? "—"}/100. Detailed responses were not recorded for this
                   assessment.
                 </>
               )

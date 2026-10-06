@@ -50,11 +50,11 @@ export const QUESTIONNAIRE_CATEGORIES = Array.from(
   new Set(QUESTIONNAIRE_QUESTIONS.map((q) => q.category))
 );
 
-/** Risk contribution per answer: a higher risk score means weaker controls. */
+/** Security score per answer: 100 means strong controls and lower risk. */
 const ANSWER_SCORES: Record<Exclude<QuestionnaireAnswer, "na">, number> = {
-  yes: 0,
+  yes: 100,
   partial: 50,
-  no: 100,
+  no: 0,
 };
 
 const VALID_ANSWERS = new Set<string>(Object.keys(QUESTIONNAIRE_ANSWER_LABELS));
@@ -69,7 +69,7 @@ export function isCompleteResponseSet(
   });
 }
 
-export function calculateRiskScore(responses: Record<string, QuestionnaireAnswer>): number {
+export function calculateSecurityScore(responses: Record<string, QuestionnaireAnswer>): number {
   const scores = QUESTIONNAIRE_QUESTIONS.map((q) => responses[q.id])
     .filter((answer): answer is Exclude<QuestionnaireAnswer, "na"> => answer !== undefined && answer !== "na")
     .map((answer) => ANSWER_SCORES[answer]);

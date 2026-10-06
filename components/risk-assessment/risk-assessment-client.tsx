@@ -91,7 +91,7 @@ export function RiskAssessmentClient({
               <TableHead>Status</TableHead>
               <TableHead>Launched</TableHead>
               <TableHead>Completed</TableHead>
-              <TableHead>Risk score</TableHead>
+              <TableHead>Security score</TableHead>
               <TableHead>Questionnaire</TableHead>
               <TableHead className="w-12 text-right">
                 <span className="sr-only">Actions</span>

@@ -436,7 +436,7 @@ export function VendorDetailSheet({
                 />
               </div>
               <p className="-mt-2 text-xs text-muted-foreground">
-                Residual risk is set from the questionnaire risk score each time an assessment is
+                Residual risk is set from the questionnaire security score each time an assessment is
                 completed. You can override it here.
               </p>
 

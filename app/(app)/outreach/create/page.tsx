@@ -4,13 +4,13 @@ import { CreateBroadcastClient } from "@/components/broadcast/create-broadcast-c
 
 export const dynamic = "force-dynamic";
 
-export default async function CreateBroadcastPage() {
+export default async function CreateOutreachPage() {
   const activeVendors = await getActiveVendors();
 
   return (
     <div className="space-y-7">
       <PageHeader
-        title="Create Broadcast"
+        title="Create Outreach"
         description="Log a communication to vendors across the portfolio, email the recipients, and track follow-up."
       />
       <CreateBroadcastClient vendors={activeVendors} />

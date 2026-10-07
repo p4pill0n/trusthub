@@ -40,7 +40,7 @@ INSERT INTO experts (region, domain, name, email, title) VALUES
 ('France', 'Operational Risk', 'Antoine Petit', 'antoine.petit@bank.example', 'OpRisk Officer — France'),
 ('France', 'Legal', 'Marie Dupont', 'marie.dupont@bank.example', 'Legal Counsel — France'),
 ('France', 'Compliance', 'Nicolas Rousseau', 'nicolas.rousseau@bank.example', 'Compliance Officer — France'),
-('UK', 'TPRM', 'Emily Clarke', 'emily.clarke@bank.example', 'TPRM Lead — UK'),
+('UK', 'TPRM', 'Kim Tata', 'kim.tata@bank.example', 'TPRM Lead — UK'),
 ('UK', 'Cyber', 'Aurelien Chu', 'aurelien.chu@bank.example', 'Cyber Risk Manager — UK'),
 ('UK', 'BCM', 'Olivia Hughes', 'olivia.hughes@bank.example', 'BCM Coordinator — UK'),
 ('UK', 'Operational Risk', 'Daniel Price', 'daniel.price@bank.example', 'OpRisk Officer — UK'),

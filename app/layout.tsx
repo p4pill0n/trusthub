@@ -35,13 +35,13 @@ const appUrl =
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl),
   title: {
-    default: "Trust Hub",
+    default: "Trust Hub - Vendor Risk Intelligence Platform",
     template: "%s · Trust Hub",
   },
   description: "TPRM platform for banking third-party risk oversight",
   applicationName: "Trust Hub",
   openGraph: {
-    title: "Trust Hub",
+    title: "Trust Hub - Vendor Risk Intelligence Platform",
     description: "TPRM platform for banking third-party risk oversight",
     siteName: "Trust Hub",
     type: "website",
@@ -50,13 +50,13 @@ export const metadata: Metadata = {
         url: "/opengraph-image.png",
         width: 1200,
         height: 1200,
-        alt: "Trust Hub",
+        alt: "Trust Hub - Vendor Risk Intelligence Platform",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Trust Hub",
+    title: "Trust Hub - Vendor Risk Intelligence Platform",
     description: "TPRM platform for banking third-party risk oversight",
     images: ["/opengraph-image.png"],
   },

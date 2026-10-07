@@ -17,6 +17,8 @@ import {
   type QuestionnaireAnswer,
 } from "@/lib/questionnaire";
 import { cn } from "@/lib/utils";
+import type { AssessmentEvidenceItem } from "@/types";
+import { ExternalLink, FileText } from "lucide-react";
 
 const ANSWER_STYLES: Record<QuestionnaireAnswer, string> = {
   yes: "border-emerald-200 bg-emerald-50 text-emerald-800",
@@ -30,6 +32,7 @@ interface ViewQuestionnaireDialogProps {
   mode: "preview" | "responses";
   responses?: Record<string, string> | null;
   riskScore?: number | null;
+  evidence?: AssessmentEvidenceItem[] | null;
   children?: React.ReactNode;
 }
 
@@ -38,6 +41,7 @@ export function ViewQuestionnaireDialog({
   mode,
   responses,
   riskScore,
+  evidence,
   children,
 }: ViewQuestionnaireDialogProps) {
   const normalizedResponses = useMemo(() => {
@@ -47,6 +51,7 @@ export function ViewQuestionnaireDialog({
 
   const answeredCount = QUESTIONNAIRE_QUESTIONS.filter((q) => normalizedResponses[q.id]).length;
   const hasResponses = answeredCount > 0;
+  const evidenceItems = Array.isArray(evidence) ? evidence : [];
 
   const questionsByCategory = useMemo(
     () =>
@@ -132,6 +137,48 @@ export function ViewQuestionnaireDialog({
               </div>
             </section>
           ))}
+
+          {mode === "responses" && (
+            <section className="space-y-3 border-t pt-4">
+              <h3 className="text-sm font-semibold">Supporting evidence</h3>
+              {evidenceItems.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No evidence was attached.</p>
+              ) : (
+                <div className="space-y-2">
+                  {evidenceItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-start justify-between gap-3 rounded-lg border border-border/80 bg-white p-3"
+                    >
+                      <div className="space-y-1">
+                        <p className="flex items-center gap-2 text-sm font-medium">
+                          <FileText className="h-4 w-4 text-muted-foreground" />
+                          {item.label}
+                        </p>
+                        {item.notes && (
+                          <p className="text-sm text-muted-foreground">{item.notes}</p>
+                        )}
+                        {item.file_name && (
+                          <p className="text-xs text-muted-foreground">{item.file_name}</p>
+                        )}
+                      </div>
+                      {item.file_url && (
+                        <a
+                          href={item.file_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex shrink-0 items-center gap-1 text-sm font-medium underline-offset-4 hover:underline"
+                        >
+                          Open
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
         </div>
       </DialogContent>
     </Dialog>

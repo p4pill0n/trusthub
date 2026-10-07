@@ -108,7 +108,7 @@ export function CreateBroadcastClient({ vendors }: CreateBroadcastClientProps) {
         setFollowUpDueDate("");
         router.refresh();
       } catch {
-        setError("Failed to create broadcast. Please try again.");
+        setError("Failed to create outreach. Please try again.");
       }
     });
   }
@@ -117,7 +117,7 @@ export function CreateBroadcastClient({ vendors }: CreateBroadcastClientProps) {
     <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
       <Card>
         <CardHeader>
-          <CardTitle>Compose broadcast</CardTitle>
+          <CardTitle>Compose outreach</CardTitle>
           <CardDescription>
             Choose the audience, write the message, and set a follow-up due date if needed.
           </CardDescription>
@@ -261,14 +261,14 @@ export function CreateBroadcastClient({ vendors }: CreateBroadcastClientProps) {
                 disabled={isPending || !title.trim() || !message.trim() || audienceCount === 0}
               >
                 <Megaphone className="h-4 w-4" />
-                {isPending ? "Saving..." : "Log broadcast"}
+                {isPending ? "Saving..." : "Log outreach"}
               </Button>
             </div>
           </div>
           {success && (
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
               <span>
-                Broadcast logged for {success.recipientCount} vendor
+                Outreach logged for {success.recipientCount} vendor
                 {success.recipientCount === 1 ? "" : "s"}. Emails are not sent automatically.
               </span>
               <div className="flex items-center gap-3">
@@ -278,7 +278,7 @@ export function CreateBroadcastClient({ vendors }: CreateBroadcastClientProps) {
                     Email recipients
                   </a>
                 )}
-                <Link href="/broadcast/follow-up" className="font-medium underline">
+                <Link href="/outreach/follow-up" className="font-medium underline">
                   Open follow-up
                 </Link>
               </div>
@@ -291,13 +291,13 @@ export function CreateBroadcastClient({ vendors }: CreateBroadcastClientProps) {
         <CardHeader>
           <CardTitle>Before you send</CardTitle>
           <CardDescription>
-            Broadcasts create follow-up rows for each recipient so you can track acknowledgements.
+            Outreach creates follow-up rows for each recipient so you can track acknowledgements.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-muted-foreground">
           <p>Use this for policy changes, assessment reminders, or incident notices.</p>
           <p>
-            TrustHub records the broadcast but does not send email itself. Use{" "}
+            TrustHub records the outreach but does not send email itself. Use{" "}
             <span className="font-medium text-foreground">Email recipients</span> after logging to
             open a pre-filled message in your mail client.
           </p>

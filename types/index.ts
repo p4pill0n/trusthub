@@ -30,7 +30,8 @@ export interface Vendor {
   type: VendorType;
   datacontact_name: string;
   contact_email: string;
-  os_manager_name?: string | null;
+  business_referent_name?: string | null;
+  business_referent_email?: string | null;
   data_type: DataType;
   data_classification: DataClassification;
   inherent_risk: InherentRisk;
@@ -40,6 +41,16 @@ export interface Vendor {
   status: VendorStatus;
   created_at: string;
   user_id?: string | null;
+}
+
+export interface AssessmentEvidenceItem {
+  id: string;
+  type: "iso27001" | "isae" | "pentest" | "soc2" | "other";
+  label: string;
+  notes: string | null;
+  file_name: string | null;
+  file_path: string | null;
+  file_url: string | null;
 }
 
 export interface Assessment {
@@ -52,6 +63,7 @@ export interface Assessment {
   assessor_notes: string | null;
   questionnaire_token: string | null;
   responses: Record<string, string> | null;
+  evidence?: AssessmentEvidenceItem[] | null;
   user_id?: string | null;
   vendors?: Pick<Vendor, "name" | "contact_email" | "status"> | null;
 }
@@ -113,6 +125,14 @@ export interface VendorActivity {
   remediations: Pick<Remediation, "id" | "title" | "status" | "priority" | "due_date">[];
   incidents: Pick<SecurityIncident, "id" | "title" | "severity" | "status" | "detected_at">[];
   bitsight: Pick<BitSightRatingRecord, "score" | "rating" | "fetched_at"> | null;
+  fourthParties: Pick<
+    FourthParty,
+    "id" | "name" | "service_description" | "risk_level" | "country"
+  >[];
+  interconnections: Pick<
+    Interconnection,
+    "id" | "direction" | "connection_type" | "description"
+  >[];
 }
 
 export interface FourthParty {

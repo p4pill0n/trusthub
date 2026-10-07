@@ -29,7 +29,8 @@ const initialForm = {
   type: "SaaS",
   datacontact_name: "",
   contact_email: "",
-  os_manager_name: "",
+  business_referent_name: "",
+  business_referent_email: "",
   data_type: "PII",
   data_classification: "C2",
   inherent_risk: "Medium",
@@ -55,7 +56,7 @@ export function AddVendorForm({ onSuccess, idPrefix = "" }: AddVendorFormProps) 
     form.name.trim() &&
     form.datacontact_name.trim() &&
     form.contact_email.trim() &&
-    form.os_manager_name.trim();
+    form.business_referent_name.trim();
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -115,7 +116,7 @@ export function AddVendorForm({ onSuccess, idPrefix = "" }: AddVendorFormProps) 
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor={fieldId("name")}>Legal entity name</Label>
+          <Label htmlFor={fieldId("name")}>Vendor name</Label>
           <Input
             id={fieldId("name")}
             value={form.name}
@@ -151,14 +152,25 @@ export function AddVendorForm({ onSuccess, idPrefix = "" }: AddVendorFormProps) 
           />
         </div>
 
-        <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor={fieldId("os-manager-name")}>OS manager name</Label>
+        <div className="space-y-2">
+          <Label htmlFor={fieldId("business-referent-name")}>Business Referent</Label>
           <Input
-            id={fieldId("os-manager-name")}
-            value={form.os_manager_name}
-            onChange={(e) => set("os_manager_name", e.target.value)}
-            placeholder="e.g. John Doe"
+            id={fieldId("business-referent-name")}
+            value={form.business_referent_name}
+            onChange={(e) => set("business_referent_name", e.target.value)}
+            placeholder="e.g. Claire Moreau"
             required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor={fieldId("business-referent-email")}>Business Referent email</Label>
+          <Input
+            id={fieldId("business-referent-email")}
+            type="email"
+            value={form.business_referent_email}
+            onChange={(e) => set("business_referent_email", e.target.value)}
+            placeholder="claire.moreau@bank.example"
           />
         </div>
 

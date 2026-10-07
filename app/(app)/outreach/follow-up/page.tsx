@@ -4,7 +4,7 @@ import { BroadcastFollowUpClient } from "@/components/broadcast/broadcast-follow
 
 export const dynamic = "force-dynamic";
 
-export default async function BroadcastFollowUpPage({
+export default async function OutreachFollowUpPage({
   searchParams,
 }: {
   searchParams: { campaign?: string };
@@ -18,7 +18,7 @@ export default async function BroadcastFollowUpPage({
     <div className="space-y-7">
       <PageHeader
         title="Follow-up"
-        description="Select a broadcast campaign, then track acknowledgements and chase vendors that have not responded."
+        description="Select an outreach campaign, then track acknowledgements and chase vendors that have not responded."
       />
       <BroadcastFollowUpClient
         broadcasts={broadcasts}

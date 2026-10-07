@@ -22,6 +22,7 @@ import {
 import { launchAssessment } from "@/lib/actions";
 import { getQuestionnaireUrl } from "@/lib/questionnaire";
 import { CopyQuestionnaireLink } from "@/components/risk-assessment/copy-questionnaire-link";
+import { SendQuestionnaireLink } from "@/components/risk-assessment/send-questionnaire-link";
 import type { Vendor } from "@/types";
 import { ClipboardList } from "lucide-react";
 
@@ -39,6 +40,7 @@ export function TriggerAssessmentModal({ vendors, preselectedVendorId }: Trigger
   const [createdToken, setCreatedToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [alreadyExists, setAlreadyExists] = useState(false);
+  const selectedVendor = vendors.find((v) => v.id === vendorId);
 
   function handleOpenChange(nextOpen: boolean) {
     setOpen(nextOpen);
@@ -108,7 +110,15 @@ export function TriggerAssessmentModal({ vendors, preselectedVendorId }: Trigger
                 <code className="min-w-0 flex-1 break-all rounded-md border bg-muted/40 px-3 py-2 text-xs leading-relaxed">
                   {getQuestionnaireUrl(createdToken)}
                 </code>
-                <CopyQuestionnaireLink token={createdToken} />
+                <div className="flex shrink-0 flex-wrap gap-2">
+                  <CopyQuestionnaireLink token={createdToken} />
+                  <SendQuestionnaireLink
+                    token={createdToken}
+                    contactEmail={selectedVendor?.contact_email}
+                    vendorName={selectedVendor?.name ?? "Vendor"}
+                    mode="send"
+                  />
+                </div>
               </div>
             </div>
           </div>

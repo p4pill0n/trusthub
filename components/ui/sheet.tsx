@@ -8,9 +8,11 @@ interface SheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   children: React.ReactNode;
+  /** Extra classes for the sliding panel (e.g. max-w-2xl). Defaults to max-w-lg. */
+  panelClassName?: string;
 }
 
-export function Sheet({ open, onOpenChange, children }: SheetProps) {
+export function Sheet({ open, onOpenChange, children, panelClassName }: SheetProps) {
   React.useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden";
@@ -30,7 +32,12 @@ export function Sheet({ open, onOpenChange, children }: SheetProps) {
         className="fixed inset-0 z-50 bg-black/50"
         onClick={() => onOpenChange(false)}
       />
-      <div className="fixed inset-y-0 right-0 z-50 w-full max-w-lg overflow-y-auto bg-white shadow-xl">
+      <div
+        className={cn(
+          "fixed inset-y-0 right-0 z-50 w-full max-w-lg overflow-y-auto bg-white shadow-xl",
+          panelClassName
+        )}
+      >
         {children}
       </div>
     </>

@@ -29,7 +29,7 @@ import {
   VENDOR_TYPES,
 } from "@/lib/constants";
 import { REMEDIATION_STATUS_LABELS } from "@/lib/remediation-status";
-import { formatDate, getVendorReviewStatus, todayIsoDate } from "@/lib/utils";
+import { cn, formatDate, getVendorReviewStatus, todayIsoDate } from "@/lib/utils";
 import type {
   Expert,
   ExpertDomain,
@@ -69,7 +69,8 @@ type VendorDraft = {
   type: string;
   datacontact_name: string;
   contact_email: string;
-  os_manager_name: string;
+  business_referent_name: string;
+  business_referent_email: string;
   data_type: string;
   data_classification: string;
   inherent_risk: string;
@@ -85,7 +86,8 @@ function toVendorDraft(vendor: Vendor): VendorDraft {
     type: vendor.type,
     datacontact_name: vendor.datacontact_name,
     contact_email: vendor.contact_email,
-    os_manager_name: vendor.os_manager_name ?? "",
+    business_referent_name: vendor.business_referent_name ?? "",
+    business_referent_email: vendor.business_referent_email ?? "",
     data_type: vendor.data_type,
     data_classification: vendor.data_classification,
     inherent_risk: vendor.inherent_risk,
@@ -142,9 +144,37 @@ function SelectField({
   );
 }
 
+function DetailSection({
+  title,
+  children,
+  className,
+}: {
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={cn("space-y-3", className)}>
+      <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+        {title}
+      </h3>
+      {children}
+    </section>
+  );
+}
+
+function DetailField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-1">
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <div className="text-sm text-foreground">{children}</div>
+    </div>
+  );
+}
+
 function ActivitySection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 rounded-lg border border-border/70 bg-muted/20 p-3">
       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{title}</p>
       {children}
     </div>
@@ -176,7 +206,7 @@ function VendorActivityPanel({ vendor, open }: { vendor: Vendor; open: boolean }
   const openIncidents = activity.incidents.filter((i) => i.status === "Open");
 
   return (
-    <div className="space-y-4">
+    <div className="grid gap-3 sm:grid-cols-2">
       <ActivitySection title="Assessments">
         {activity.assessments.length === 0 ? (
           <p className="text-sm text-muted-foreground">No assessments yet.</p>
@@ -233,6 +263,47 @@ function VendorActivityPanel({ vendor, open }: { vendor: Vendor; open: boolean }
             ? `${activity.bitsight.score} · ${activity.bitsight.rating} (fetched ${formatDate(activity.bitsight.fetched_at)})`
             : "No rating on file."}
         </p>
+      </ActivitySection>
+
+      <ActivitySection title={`Fourth parties (${activity.fourthParties.length})`}>
+        {activity.fourthParties.length === 0 ? (
+          <p className="text-sm text-muted-foreground">None recorded.</p>
+        ) : (
+          <ul className="space-y-1.5 text-sm">
+            {activity.fourthParties.slice(0, 6).map((fp) => (
+              <li key={fp.id} className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{fp.name}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {[fp.service_description, fp.country].filter(Boolean).join(" · ") || "—"}
+                  </p>
+                </div>
+                <RiskBadge level={fp.risk_level} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </ActivitySection>
+
+      <ActivitySection title={`Interconnections (${activity.interconnections.length})`}>
+        {activity.interconnections.length === 0 ? (
+          <p className="text-sm text-muted-foreground">None recorded.</p>
+        ) : (
+          <ul className="space-y-1.5 text-sm">
+            {activity.interconnections.slice(0, 6).map((ic) => (
+              <li key={ic.id} className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate font-medium">
+                    {ic.connection_type} · {ic.direction}
+                  </p>
+                  {ic.description && (
+                    <p className="truncate text-xs text-muted-foreground">{ic.description}</p>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </ActivitySection>
     </div>
   );
@@ -294,10 +365,10 @@ export function VendorDetailSheet({
   }
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={open} onOpenChange={onOpenChange} panelClassName="max-w-3xl">
       <SheetContent title={vendor.name} onClose={() => onOpenChange(false)}>
-        <div className="space-y-6">
-          <div className="flex items-start justify-between gap-3 border-b border-border/80 pb-4">
+        <div className="space-y-8">
+          <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
               <VendorAvatar
                 name={editing ? draft.name || vendor.name : vendor.name}
@@ -307,6 +378,15 @@ export function VendorDetailSheet({
                 <p className="font-medium">{editing ? draft.name || vendor.name : vendor.name}</p>
                 <p className="text-sm text-muted-foreground">
                   {editing ? draft.type : vendor.type}
+                  {!editing && (
+                    <>
+                      {" · "}
+                      <span className="inline-flex items-center gap-1.5 align-middle">
+                        <RegionFlag region={vendor.entity_name} />
+                        {vendor.entity_name}
+                      </span>
+                    </>
+                  )}
                 </p>
               </div>
             </div>
@@ -329,209 +409,225 @@ export function VendorDetailSheet({
           </div>
 
           {editing ? (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor={`vendor-name-${vendor.id}`}>Name</Label>
-                <Input
-                  id={`vendor-name-${vendor.id}`}
-                  value={draft.name}
-                  onChange={(e) => updateDraft("name", e.target.value)}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Entity</Label>
-                  <Select
-                    value={draft.entity_name}
-                    onValueChange={(v) => updateDraft("entity_name", v)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ENTITY_OPTIONS.map((entity) => (
-                        <SelectItem key={entity} value={entity}>
-                          <span className="inline-flex items-center gap-2">
-                            <RegionFlag region={entity} />
-                            {entity}
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+            <div className="space-y-8">
+              <DetailSection title="Overview">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor={`vendor-name-${vendor.id}`}>Vendor name</Label>
+                    <Input
+                      id={`vendor-name-${vendor.id}`}
+                      value={draft.name}
+                      onChange={(e) => updateDraft("name", e.target.value)}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Entity</Label>
+                      <Select
+                        value={draft.entity_name}
+                        onValueChange={(v) => updateDraft("entity_name", v)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ENTITY_OPTIONS.map((entity) => (
+                            <SelectItem key={entity} value={entity}>
+                              <span className="inline-flex items-center gap-2">
+                                <RegionFlag region={entity} />
+                                {entity}
+                              </span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <SelectField
+                      label="Type"
+                      value={draft.type}
+                      options={VENDOR_TYPES}
+                      onChange={(v) => updateDraft("type", v)}
+                    />
+                    <SelectField
+                      label="Status"
+                      value={draft.status}
+                      options={VENDOR_STATUSES}
+                      onChange={(v) => updateDraft("status", v as VendorStatus)}
+                    />
+                    <SelectField
+                      label="Data Type"
+                      value={draft.data_type}
+                      options={DATA_TYPES}
+                      onChange={(v) => updateDraft("data_type", v)}
+                    />
+                    <SelectField
+                      label="Classification"
+                      value={draft.data_classification}
+                      options={DATA_CLASSIFICATIONS}
+                      onChange={(v) => updateDraft("data_classification", v)}
+                    />
+                  </div>
                 </div>
-                <SelectField
-                  label="Type"
-                  value={draft.type}
-                  options={VENDOR_TYPES}
-                  onChange={(v) => updateDraft("type", v)}
-                />
-              </div>
+              </DetailSection>
 
-              <div className="grid grid-cols-2 gap-4">
-                <SelectField
-                  label="Status"
-                  value={draft.status}
-                  options={VENDOR_STATUSES}
-                  onChange={(v) => updateDraft("status", v as VendorStatus)}
-                />
-                <div className="space-y-2">
-                  <Label htmlFor={`vendor-os-${vendor.id}`}>OS Manager</Label>
-                  <Input
-                    id={`vendor-os-${vendor.id}`}
-                    value={draft.os_manager_name}
-                    onChange={(e) => updateDraft("os_manager_name", e.target.value)}
+              <DetailSection title="Contacts">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor={`vendor-contact-${vendor.id}`}>Primary contact</Label>
+                    <Input
+                      id={`vendor-contact-${vendor.id}`}
+                      value={draft.datacontact_name}
+                      onChange={(e) => updateDraft("datacontact_name", e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`vendor-email-${vendor.id}`}>Primary contact email</Label>
+                    <Input
+                      id={`vendor-email-${vendor.id}`}
+                      type="email"
+                      value={draft.contact_email}
+                      onChange={(e) => updateDraft("contact_email", e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`vendor-business-referent-${vendor.id}`}>Business Referent</Label>
+                    <Input
+                      id={`vendor-business-referent-${vendor.id}`}
+                      value={draft.business_referent_name}
+                      onChange={(e) => updateDraft("business_referent_name", e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`vendor-business-email-${vendor.id}`}>
+                      Business Referent email
+                    </Label>
+                    <Input
+                      id={`vendor-business-email-${vendor.id}`}
+                      type="email"
+                      value={draft.business_referent_email}
+                      onChange={(e) => updateDraft("business_referent_email", e.target.value)}
+                    />
+                  </div>
+                </div>
+              </DetailSection>
+
+              <DetailSection title="Risk & reviews">
+                <div className="grid grid-cols-2 gap-4">
+                  <SelectField
+                    label="Inherent Risk"
+                    value={draft.inherent_risk}
+                    options={RISK_LEVELS}
+                    onChange={(v) => updateDraft("inherent_risk", v)}
                   />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <SelectField
-                  label="Data Type"
-                  value={draft.data_type}
-                  options={DATA_TYPES}
-                  onChange={(v) => updateDraft("data_type", v)}
-                />
-                <SelectField
-                  label="Classification"
-                  value={draft.data_classification}
-                  options={DATA_CLASSIFICATIONS}
-                  onChange={(v) => updateDraft("data_classification", v)}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor={`vendor-contact-${vendor.id}`}>Contact</Label>
-                  <Input
-                    id={`vendor-contact-${vendor.id}`}
-                    value={draft.datacontact_name}
-                    onChange={(e) => updateDraft("datacontact_name", e.target.value)}
+                  <SelectField
+                    label="Residual Risk"
+                    value={draft.residual_risk}
+                    options={RISK_LEVELS}
+                    onChange={(v) => updateDraft("residual_risk", v)}
                   />
+                  <div className="space-y-2">
+                    <Label htmlFor={`vendor-last-${vendor.id}`}>Last Review</Label>
+                    <Input
+                      id={`vendor-last-${vendor.id}`}
+                      type="date"
+                      max={todayIsoDate()}
+                      value={draft.last_review_date}
+                      onChange={(e) => updateDraft("last_review_date", e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Next Review</Label>
+                    <p className="pt-2 text-sm text-muted-foreground">
+                      Calculated from the review policy and inherent risk.
+                    </p>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor={`vendor-email-${vendor.id}`}>Email</Label>
-                  <Input
-                    id={`vendor-email-${vendor.id}`}
-                    type="email"
-                    value={draft.contact_email}
-                    onChange={(e) => updateDraft("contact_email", e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <SelectField
-                  label="Inherent Risk"
-                  value={draft.inherent_risk}
-                  options={RISK_LEVELS}
-                  onChange={(v) => updateDraft("inherent_risk", v)}
-                />
-                <SelectField
-                  label="Residual Risk"
-                  value={draft.residual_risk}
-                  options={RISK_LEVELS}
-                  onChange={(v) => updateDraft("residual_risk", v)}
-                />
-              </div>
-              <p className="-mt-2 text-xs text-muted-foreground">
-                Residual risk is set from the questionnaire security score each time an assessment is
-                completed. You can override it here.
-              </p>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor={`vendor-last-${vendor.id}`}>Last Review</Label>
-                  <Input
-                    id={`vendor-last-${vendor.id}`}
-                    type="date"
-                    max={todayIsoDate()}
-                    value={draft.last_review_date}
-                    onChange={(e) => updateDraft("last_review_date", e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Next Review</Label>
-                  <p className="pt-2 text-sm text-muted-foreground">
-                    Calculated from the review policy and inherent risk.
-                  </p>
-                </div>
-              </div>
+                <p className="text-xs text-muted-foreground">
+                  Residual risk is set from the questionnaire security score each time an assessment
+                  is completed. You can override it here.
+                </p>
+              </DetailSection>
             </div>
           ) : (
-            <div className="space-y-5">
-              <div>
-                <p className="text-sm text-muted-foreground">Entity</p>
-                <p className="flex items-center gap-2 font-medium">
-                  <RegionFlag region={vendor.entity_name} />
-                  {vendor.entity_name}
-                </p>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Type</p>
-                  <p>{vendor.type}</p>
+            <div className="space-y-8">
+              <DetailSection title="Overview">
+                <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
+                  <DetailField label="Vendor name">
+                    <p className="font-medium">{vendor.name}</p>
+                  </DetailField>
+                  <DetailField label="Entity">
+                    <p className="flex items-center gap-2 font-medium">
+                      <RegionFlag region={vendor.entity_name} />
+                      {vendor.entity_name}
+                    </p>
+                  </DetailField>
+                  <DetailField label="Type">
+                    <p>{vendor.type}</p>
+                  </DetailField>
+                  <DetailField label="Status">
+                    <StatusBadge status={vendor.status} />
+                  </DetailField>
+                  <DetailField label="Data Type">
+                    <p>{vendor.data_type}</p>
+                  </DetailField>
+                  <DetailField label="Classification">
+                    <p>{vendor.data_classification}</p>
+                  </DetailField>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Status</p>
-                  <StatusBadge status={vendor.status} />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Data Type</p>
-                  <p>{vendor.data_type}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Classification</p>
-                  <p>{vendor.data_classification}</p>
-                </div>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Contact</p>
-                <p>{vendor.datacontact_name}</p>
-                <p className="text-sm text-muted-foreground">{vendor.contact_email}</p>
-              </div>
-              {vendor.os_manager_name && (
-                <div>
-                  <p className="text-sm text-muted-foreground">OS Manager</p>
-                  <p>{vendor.os_manager_name}</p>
-                </div>
-              )}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Inherent Risk</p>
-                  <RiskBadge level={vendor.inherent_risk} />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Residual Risk</p>
-                  <RiskBadge level={vendor.residual_risk} />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Last Review</p>
-                  <p>{formatDate(vendor.last_review_date)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Next Review</p>
-                  <p>
-                    {formatDate(vendor.next_review_date)}
-                    {reviewStatus.variant !== "none" && (
-                      <span
-                        className={
-                          reviewStatus.variant === "overdue"
-                            ? "ml-2 text-sm text-red-600"
-                            : reviewStatus.variant === "unreviewed"
-                              ? "ml-2 text-sm text-amber-700"
-                              : "ml-2 text-sm text-muted-foreground"
-                        }
-                      >
-                        ({reviewStatus.label})
-                      </span>
+              </DetailSection>
+
+              <DetailSection title="Contacts">
+                <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+                  <DetailField label="Primary contact">
+                    <p>{vendor.datacontact_name}</p>
+                    <p className="text-muted-foreground">{vendor.contact_email}</p>
+                  </DetailField>
+                  <DetailField label="Business Referent">
+                    {vendor.business_referent_name ? (
+                      <>
+                        <p>{vendor.business_referent_name}</p>
+                        {vendor.business_referent_email && (
+                          <p className="text-muted-foreground">{vendor.business_referent_email}</p>
+                        )}
+                      </>
+                    ) : (
+                      <p className="text-muted-foreground">Not set</p>
                     )}
-                  </p>
+                  </DetailField>
                 </div>
-              </div>
+              </DetailSection>
+
+              <DetailSection title="Risk & reviews">
+                <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
+                  <DetailField label="Inherent Risk">
+                    <RiskBadge level={vendor.inherent_risk} />
+                  </DetailField>
+                  <DetailField label="Residual Risk">
+                    <RiskBadge level={vendor.residual_risk} />
+                  </DetailField>
+                  <DetailField label="Last Review">
+                    <p>{formatDate(vendor.last_review_date)}</p>
+                  </DetailField>
+                  <DetailField label="Next Review">
+                    <p>
+                      {formatDate(vendor.next_review_date)}
+                      {reviewStatus.variant !== "none" && (
+                        <span
+                          className={
+                            reviewStatus.variant === "overdue"
+                              ? "ml-2 text-sm text-red-600"
+                              : reviewStatus.variant === "unreviewed"
+                                ? "ml-2 text-sm text-amber-700"
+                                : "ml-2 text-sm text-muted-foreground"
+                          }
+                        >
+                          ({reviewStatus.label})
+                        </span>
+                      )}
+                    </p>
+                  </DetailField>
+                </div>
+              </DetailSection>
             </div>
           )}
 
@@ -549,18 +645,13 @@ export function VendorDetailSheet({
           )}
 
           {!editing && (
-            <div className="border-t border-border/80 pt-5">
-              <p className="mb-3 text-sm font-medium text-foreground">Activity</p>
+            <DetailSection title="Activity">
               <VendorActivityPanel vendor={vendor} open={open} />
-            </div>
+            </DetailSection>
           )}
 
-          <div className="border-t border-border/80 pt-5">
-            <div className="mb-3 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <RegionFlag region={displayEntity} />
-                <p className="text-sm font-medium text-foreground">Experts — {displayEntity}</p>
-              </div>
+          <DetailSection title="Experts">
+            <div className="mb-1 flex items-center justify-end">
               <Link
                 href="/experts"
                 className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
@@ -573,9 +664,12 @@ export function VendorDetailSheet({
                 No expert contacts configured for this region.
               </p>
             ) : (
-              <div className="divide-y divide-border/70 rounded-md border border-border/70">
+              <div className="grid gap-2 sm:grid-cols-2">
                 {regionExperts.map((expert) => (
-                  <div key={expert.id} className="px-3 py-2.5">
+                  <div
+                    key={expert.id}
+                    className="rounded-lg border border-border/70 bg-muted/20 px-3 py-2.5"
+                  >
                     <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                       {expert.domain}
                     </p>
@@ -590,7 +684,7 @@ export function VendorDetailSheet({
                 ))}
               </div>
             )}
-          </div>
+          </DetailSection>
         </div>
       </SheetContent>
     </Sheet>

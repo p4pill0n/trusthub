@@ -6,8 +6,12 @@ import { isValid, parseISO } from "date-fns";
 import { supabase } from "@/lib/supabase";
 import {
   calculateSecurityScore,
+  evidenceTypeLabel,
   isCompleteResponseSet,
+  QUESTIONNAIRE_EVIDENCE_TYPES,
   type QuestionnaireAnswer,
+  type QuestionnaireEvidenceItem,
+  type QuestionnaireEvidenceType,
 } from "@/lib/questionnaire";
 import { computeNextReviewDate, deriveResidualRisk, validatePolicyInput } from "@/lib/policy";
 import { getTprmPolicy, getVendorActivity, getVendorById, getExperts } from "@/lib/queries";
@@ -37,6 +41,44 @@ import type {
 } from "@/types";
 
 type Failure = { ok: false; error: string };
+
+const EVIDENCE_TYPE_SET = new Set<string>(QUESTIONNAIRE_EVIDENCE_TYPES.map((t) => t.value));
+
+function sanitizeQuestionnaireEvidence(
+  evidence: QuestionnaireEvidenceItem[] | null | undefined
+): QuestionnaireEvidenceItem[] {
+  if (!Array.isArray(evidence)) return [];
+
+  return evidence
+    .filter((item) => item && typeof item.id === "string" && EVIDENCE_TYPE_SET.has(item.type))
+    .slice(0, 10)
+    .map((item) => {
+      const type = item.type as QuestionnaireEvidenceType;
+      const notes =
+        typeof item.notes === "string" && item.notes.trim() ? item.notes.trim().slice(0, 2000) : null;
+      return {
+        id: item.id.slice(0, 80),
+        type,
+        label:
+          typeof item.label === "string" && item.label.trim()
+            ? item.label.trim().slice(0, 200)
+            : evidenceTypeLabel(type),
+        notes,
+        file_name:
+          typeof item.file_name === "string" && item.file_name.trim()
+            ? item.file_name.trim().slice(0, 260)
+            : null,
+        file_path:
+          typeof item.file_path === "string" && item.file_path.trim()
+            ? item.file_path.trim().slice(0, 500)
+            : null,
+        file_url:
+          typeof item.file_url === "string" && item.file_url.trim()
+            ? item.file_url.trim().slice(0, 1000)
+            : null,
+      };
+    });
+}
 
 function fail(error: string): Failure {
   return { ok: false, error };
@@ -90,7 +132,8 @@ type VendorInput = {
   type: string;
   datacontact_name: string;
   contact_email: string;
-  os_manager_name?: string | null;
+  business_referent_name?: string | null;
+  business_referent_email?: string | null;
   data_type: string;
   data_classification: string;
   inherent_risk: string;
@@ -105,6 +148,10 @@ function validateVendorInput(data: VendorInput): string | null {
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.contact_email.trim())) {
     return "Enter a valid contact email.";
+  }
+  const businessEmail = data.business_referent_email?.trim();
+  if (businessEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(businessEmail)) {
+    return "Enter a valid business referent email.";
   }
   if (!ENTITY_OPTIONS.includes(data.entity_name as never)) return "Select a valid entity.";
   if (!VENDOR_TYPES.includes(data.type as never)) return "Select a valid vendor type.";
@@ -133,7 +180,8 @@ async function toVendorRow(data: VendorInput) {
     type: data.type,
     datacontact_name: data.datacontact_name.trim(),
     contact_email: data.contact_email.trim(),
-    os_manager_name: blankToNull(data.os_manager_name),
+    business_referent_name: blankToNull(data.business_referent_name),
+    business_referent_email: blankToNull(data.business_referent_email),
     data_type: data.data_type,
     data_classification: data.data_classification,
     inherent_risk: data.inherent_risk,
@@ -264,7 +312,8 @@ export async function startQuestionnaire(token: string) {
 
 export async function submitQuestionnaire(
   token: string,
-  responses: Record<string, QuestionnaireAnswer>
+  responses: Record<string, QuestionnaireAnswer>,
+  evidence: QuestionnaireEvidenceItem[] = []
 ) {
   if (!isCompleteResponseSet(responses)) {
     return fail("Please answer every question before submitting.");
@@ -292,10 +341,17 @@ export async function submitQuestionnaire(
 
   const riskScore = calculateSecurityScore(responses);
   const completedAt = new Date().toISOString();
+  const sanitizedEvidence = sanitizeQuestionnaireEvidence(evidence);
 
   const { data: updated, error } = await supabase
     .from("assessments")
-    .update({ responses, risk_score: riskScore, status: "Completed", completed_at: completedAt })
+    .update({
+      responses,
+      risk_score: riskScore,
+      status: "Completed",
+      completed_at: completedAt,
+      evidence: sanitizedEvidence,
+    })
     .eq("id", assessment.id)
     .is("completed_at", null)
     .in("status", ["Pending", "In Progress"])
@@ -614,7 +670,7 @@ export async function updateBroadcastRecipientNotes(id: string, notes: string) {
 export async function deleteBroadcast(id: string) {
   const { data, error } = await supabase.from("broadcasts").delete().eq("id", id).select("id");
   if (error) return fail(error.message);
-  if (!data?.length) return fail("Could not delete this broadcast. It may already be gone.");
+  if (!data?.length) return fail("Could not delete this outreach. It may already be gone.");
 
   revalidateApp();
   return { ok: true as const };

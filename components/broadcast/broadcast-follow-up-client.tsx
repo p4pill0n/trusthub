@@ -195,7 +195,7 @@ export function BroadcastFollowUpClient({
         }
         router.refresh();
       } catch {
-        setDeleteError("Failed to delete broadcast.");
+        setDeleteError("Failed to delete outreach.");
       }
     });
   }
@@ -208,7 +208,7 @@ export function BroadcastFollowUpClient({
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            {broadcasts.length} broadcast campaign{broadcasts.length === 1 ? "" : "s"}
+            {broadcasts.length} outreach campaign{broadcasts.length === 1 ? "" : "s"}
           </p>
           {deleteError && <p className="text-sm text-red-600">{deleteError}</p>}
         </div>
@@ -217,7 +217,7 @@ export function BroadcastFollowUpClient({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Broadcast campaign</TableHead>
+                <TableHead>Outreach campaign</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Sent</TableHead>
                 <TableHead>Follow-up due</TableHead>
@@ -320,7 +320,7 @@ export function BroadcastFollowUpClient({
               {broadcasts.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={9} className="py-10 text-center text-muted-foreground">
-                    No broadcast campaigns yet. Create a broadcast to start follow-up tracking.
+                    No outreach campaigns yet. Create outreach to start follow-up tracking.
                   </TableCell>
                 </TableRow>
               )}

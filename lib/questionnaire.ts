@@ -86,3 +86,57 @@ export function getQuestionnaireUrl(token: string): string {
       : process.env.NEXT_PUBLIC_APP_URL ?? "";
   return `${base}/questionnaire/${token}`;
 }
+
+export type QuestionnaireEvidenceType =
+  | "iso27001"
+  | "isae"
+  | "pentest"
+  | "soc2"
+  | "other";
+
+export const QUESTIONNAIRE_EVIDENCE_TYPES: {
+  value: QuestionnaireEvidenceType;
+  label: string;
+}[] = [
+  { value: "iso27001", label: "ISO 27001 certificate" },
+  { value: "isae", label: "ISAE / SOC report" },
+  { value: "soc2", label: "SOC 2 report" },
+  { value: "pentest", label: "Penetration test summary" },
+  { value: "other", label: "Other evidence" },
+];
+
+export interface QuestionnaireEvidenceItem {
+  id: string;
+  type: QuestionnaireEvidenceType;
+  label: string;
+  notes: string | null;
+  file_name: string | null;
+  file_path: string | null;
+  file_url: string | null;
+}
+
+export function evidenceTypeLabel(type: QuestionnaireEvidenceType): string {
+  return QUESTIONNAIRE_EVIDENCE_TYPES.find((t) => t.value === type)?.label ?? "Evidence";
+}
+
+/** Opens the user's mail client with the questionnaire link (same pattern as Outreach). */
+export function buildQuestionnaireMailto(options: {
+  email?: string | null;
+  vendorName: string;
+  token: string;
+  mode?: "send" | "reminder";
+}): string | null {
+  const email = options.email?.trim();
+  if (!email) return null;
+
+  const url = getQuestionnaireUrl(options.token);
+  const isReminder = options.mode === "reminder";
+  const subject = isReminder
+    ? `Reminder: security risk questionnaire for ${options.vendorName}`
+    : `Security risk questionnaire for ${options.vendorName}`;
+  const body = isReminder
+    ? `Hi,\n\nThis is a reminder to complete the third-party security risk questionnaire for ${options.vendorName}.\n\nPlease use this secure link:\n${url}\n\nThank you,\nTrust Hub`
+    : `Hi,\n\nPlease complete the third-party security risk questionnaire for ${options.vendorName}.\n\nSecure link:\n${url}\n\nThank you,\nTrust Hub`;
+
+  return `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}

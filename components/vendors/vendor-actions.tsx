@@ -26,7 +26,7 @@ export function VendorActions({ vendor, experts = [] }: VendorActionsProps) {
 
   function handleOffboard() {
     const confirmed = window.confirm(
-      `Offboard ${vendor.name}? It will be removed from review tracking, the dashboard, and new assessments, remediations and broadcasts. Open questionnaire links will stop accepting responses. History is kept.`
+      `Offboard ${vendor.name}? It will be removed from review tracking, the dashboard, and new assessments, remediations and outreach. Open questionnaire links will stop accepting responses. History is kept.`
     );
     if (!confirmed) return;
 

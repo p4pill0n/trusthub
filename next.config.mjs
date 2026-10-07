@@ -17,6 +17,21 @@ const nextConfig = {
         destination: "/risk-assessment",
         permanent: true,
       },
+      {
+        source: "/broadcast/create",
+        destination: "/outreach/create",
+        permanent: true,
+      },
+      {
+        source: "/broadcast/follow-up",
+        destination: "/outreach/follow-up",
+        permanent: true,
+      },
+      {
+        source: "/broadcast",
+        destination: "/outreach/create",
+        permanent: true,
+      },
     ];
   },
 };

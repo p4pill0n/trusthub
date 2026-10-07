@@ -11,7 +11,8 @@ CREATE TABLE vendors (
   type TEXT NOT NULL CHECK (type IN ('SaaS', 'On-Premise Software', 'Consulting', 'Payroll', 'Cloud Infrastructure', 'Market Data', 'Managed Services')),
   datacontact_name TEXT NOT NULL,
   contact_email TEXT NOT NULL,
-  os_manager_name TEXT,
+  business_referent_name TEXT,
+  business_referent_email TEXT,
   data_type TEXT NOT NULL CHECK (data_type IN ('PII', 'Financial', 'Legal')),
   data_classification TEXT NOT NULL CHECK (data_classification IN ('C0', 'C1', 'C2', 'C3')),
   inherent_risk TEXT NOT NULL CHECK (inherent_risk IN ('Low', 'Medium', 'High', 'Very High')),
@@ -35,6 +36,7 @@ CREATE TABLE assessments (
   assessor_notes TEXT,
   questionnaire_token TEXT UNIQUE,
   responses JSONB,
+  evidence JSONB DEFAULT '[]'::jsonb,
   user_id UUID REFERENCES auth.users(id)
 );
 

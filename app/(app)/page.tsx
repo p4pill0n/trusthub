@@ -1,18 +1,24 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { KpiCard } from "@/components/dashboard/kpi-card";
-import { DonutChart, VendorTypesChart, PipelineChart } from "@/components/dashboard/charts";
-import { VendorTable } from "@/components/vendors/vendor-table";
-import { getDashboardStats, getExperts, getTopOverdueVendors } from "@/lib/queries";
-import Link from "next/link";
+import { DashboardExplore } from "@/components/dashboard/dashboard-explore";
+import {
+  getActiveVendors,
+  getDashboardStats,
+  getExperts,
+  getRemediations,
+} from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const [stats, overdueVendors, experts] = await Promise.all([
+  const [stats, vendors, remediations, experts] = await Promise.all([
     getDashboardStats(),
-    getTopOverdueVendors(8),
+    getActiveVendors(),
+    getRemediations(),
     getExperts(),
   ]);
+
+  const activeVendorIds = new Set(vendors.map((v) => v.id));
+  const activeRemediations = remediations.filter((r) => activeVendorIds.has(r.vendor_id));
 
   return (
     <div className="space-y-7">
@@ -20,7 +26,7 @@ export default async function DashboardPage() {
         <h1 className="page-title">Overview</h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
           Real-time view of the third-party portfolio, assessment cadence, and inherent risk
-          distribution.
+          distribution. Click a chart segment to explore the matching list below.
         </p>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
@@ -58,50 +64,12 @@ export default async function DashboardPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <DonutChart
-          title="Inherent Risk Distribution"
-          description={`Across ${stats.totalVendors} vendors`}
-          data={stats.inherentRiskDistribution}
-        />
-        <VendorTypesChart
-          title="Vendor Types"
-          description="Portfolio composition"
-          data={stats.vendorTypes}
-        />
-        <PipelineChart
-          title="Assessment Pipeline"
-          description="Reviews by timeline"
-          data={stats.assessmentPipeline}
-        />
-        <DonutChart
-          title="Remediations Status"
-          description={`${stats.totalRemediations} remediations`}
-          data={stats.remediationsStatusDistribution}
-        />
-      </div>
-
-      <Card className="border-border/80 shadow-none">
-        <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4">
-          <div>
-            <CardTitle className="card-title-serif">Overdue Reviews</CardTitle>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {stats.overdueReviews > 8
-                ? `Top 8 of ${stats.overdueReviews} overdue vendors, most overdue first`
-                : "Most overdue first"}
-            </p>
-          </div>
-          <Link
-            href="/vendors?review=overdue"
-            className="text-sm font-medium text-foreground hover:underline"
-          >
-            View all overdue →
-          </Link>
-        </CardHeader>
-        <CardContent className="p-0">
-          <VendorTable vendors={overdueVendors} experts={experts} variant="compact" />
-        </CardContent>
-      </Card>
+      <DashboardExplore
+        stats={stats}
+        vendors={vendors}
+        remediations={activeRemediations}
+        experts={experts}
+      />
     </div>
   );
 }

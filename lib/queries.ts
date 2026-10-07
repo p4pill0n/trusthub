@@ -305,32 +305,50 @@ export async function getRankedFourthParties(): Promise<RankedFourthParty[]> {
 }
 
 export async function getVendorActivity(vendorId: string): Promise<VendorActivity> {
-  const [assessments, remediations, incidents, bitsight] = await Promise.all([
-    supabase
-      .from("assessments")
-      .select("id, status, launched_at, completed_at, risk_score")
-      .eq("vendor_id", vendorId)
-      .order("launched_at", { ascending: false, nullsFirst: false }),
-    supabase
-      .from("remediations")
-      .select("id, title, status, priority, due_date")
-      .eq("vendor_id", vendorId)
-      .order("due_date", { ascending: true, nullsFirst: false }),
-    supabase
-      .from("security_incidents")
-      .select("id, title, severity, status, detected_at")
-      .eq("vendor_id", vendorId)
-      .order("detected_at", { ascending: false }),
-    supabase
-      .from("bitsight_ratings")
-      .select("score, rating, fetched_at")
-      .eq("vendor_id", vendorId)
-      .order("fetched_at", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-  ]);
+  const [assessments, remediations, incidents, bitsight, fourthParties, interconnections] =
+    await Promise.all([
+      supabase
+        .from("assessments")
+        .select("id, status, launched_at, completed_at, risk_score")
+        .eq("vendor_id", vendorId)
+        .order("launched_at", { ascending: false, nullsFirst: false }),
+      supabase
+        .from("remediations")
+        .select("id, title, status, priority, due_date")
+        .eq("vendor_id", vendorId)
+        .order("due_date", { ascending: true, nullsFirst: false }),
+      supabase
+        .from("security_incidents")
+        .select("id, title, severity, status, detected_at")
+        .eq("vendor_id", vendorId)
+        .order("detected_at", { ascending: false }),
+      supabase
+        .from("bitsight_ratings")
+        .select("score, rating, fetched_at")
+        .eq("vendor_id", vendorId)
+        .order("fetched_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from("fourth_parties")
+        .select("id, name, service_description, risk_level, country")
+        .eq("parent_vendor_id", vendorId)
+        .order("name", { ascending: true }),
+      supabase
+        .from("interconnections")
+        .select("id, direction, connection_type, description")
+        .eq("vendor_id", vendorId)
+        .order("connection_type", { ascending: true }),
+    ]);
 
-  for (const result of [assessments, remediations, incidents, bitsight]) {
+  for (const result of [
+    assessments,
+    remediations,
+    incidents,
+    bitsight,
+    fourthParties,
+    interconnections,
+  ]) {
     if (result.error) throw result.error;
   }
 
@@ -339,6 +357,8 @@ export async function getVendorActivity(vendorId: string): Promise<VendorActivit
     remediations: (remediations.data ?? []) as VendorActivity["remediations"],
     incidents: (incidents.data ?? []) as VendorActivity["incidents"],
     bitsight: (bitsight.data ?? null) as VendorActivity["bitsight"],
+    fourthParties: (fourthParties.data ?? []) as VendorActivity["fourthParties"],
+    interconnections: (interconnections.data ?? []) as VendorActivity["interconnections"],
   };
 }
 

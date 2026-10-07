@@ -44,10 +44,10 @@ const navSections: NavSection[] = [
     ],
   },
   {
-    title: "Broadcast",
+    title: "Outreach",
     items: [
-      { href: "/broadcast/create", label: "Create Broadcast", icon: Megaphone },
-      { href: "/broadcast/follow-up", label: "Follow-up", icon: ListChecks },
+      { href: "/outreach/create", label: "Create Outreach", icon: Megaphone },
+      { href: "/outreach/follow-up", label: "Follow-up", icon: ListChecks },
     ],
   },
   {
@@ -57,7 +57,7 @@ const navSections: NavSection[] = [
       { href: "/bitsight", label: "BitSight Ratings", icon: BarChart3 },
       { href: "/interconnections", label: "Interconnections", icon: GitBranch },
       {
-        href: "https://cisowatch.vercel.app/",
+        href: "https://cisowatch.vercel.app/breach",
         label: "CISO Watch",
         icon: Shield,
         external: true,
@@ -145,7 +145,7 @@ export function Sidebar() {
         </div>
       </div>
 
-      <nav className="relative flex-1 space-y-5 overflow-y-auto px-3 py-2">
+      <nav className="sidebar-scroll relative flex-1 space-y-5 overflow-y-auto px-3 py-2">
         {navSections.map((section, index) => (
           <div key={section.title ?? index}>
             {section.title && (

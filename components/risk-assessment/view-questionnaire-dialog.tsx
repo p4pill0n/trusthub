@@ -11,9 +11,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  ANSWERS_REQUIRING_EXPLANATION,
   QUESTIONNAIRE_ANSWER_LABELS,
   QUESTIONNAIRE_CATEGORIES,
   QUESTIONNAIRE_QUESTIONS,
+  getResponseAnswer,
+  getResponseExplanation,
   type QuestionnaireAnswer,
 } from "@/lib/questionnaire";
 import { cn } from "@/lib/utils";
@@ -30,7 +33,7 @@ const ANSWER_STYLES: Record<QuestionnaireAnswer, string> = {
 interface ViewQuestionnaireDialogProps {
   vendorName: string;
   mode: "preview" | "responses";
-  responses?: Record<string, string> | null;
+  responses?: Record<string, unknown> | null;
   riskScore?: number | null;
   evidence?: AssessmentEvidenceItem[] | null;
   children?: React.ReactNode;
@@ -44,12 +47,9 @@ export function ViewQuestionnaireDialog({
   evidence,
   children,
 }: ViewQuestionnaireDialogProps) {
-  const normalizedResponses = useMemo(() => {
-    if (!responses) return {};
-    return responses as Record<string, QuestionnaireAnswer>;
-  }, [responses]);
-
-  const answeredCount = QUESTIONNAIRE_QUESTIONS.filter((q) => normalizedResponses[q.id]).length;
+  const answeredCount = QUESTIONNAIRE_QUESTIONS.filter(
+    (q) => getResponseAnswer(responses?.[q.id]) !== null
+  ).length;
   const hasResponses = answeredCount > 0;
   const evidenceItems = Array.isArray(evidence) ? evidence : [];
 
@@ -105,7 +105,9 @@ export function ViewQuestionnaireDialog({
               <h3 className="text-sm font-semibold">{category}</h3>
               <div className="space-y-3">
                 {questions.map((question, index) => {
-                  const answer = normalizedResponses[question.id];
+                  const raw = responses?.[question.id];
+                  const answer = getResponseAnswer(raw);
+                  const explanation = getResponseExplanation(raw);
 
                   return (
                     <div
@@ -116,16 +118,23 @@ export function ViewQuestionnaireDialog({
                         {index + 1}. {question.text}
                       </p>
                       {mode === "responses" && (
-                        <div className="mt-2">
+                        <div className="mt-2 space-y-2">
                           {answer ? (
-                            <span
-                              className={cn(
-                                "inline-flex rounded-md border px-2.5 py-0.5 text-xs font-semibold",
-                                ANSWER_STYLES[answer]
+                            <>
+                              <span
+                                className={cn(
+                                  "inline-flex rounded-md border px-2.5 py-0.5 text-xs font-semibold",
+                                  ANSWER_STYLES[answer]
+                                )}
+                              >
+                                {QUESTIONNAIRE_ANSWER_LABELS[answer]}
+                              </span>
+                              {ANSWERS_REQUIRING_EXPLANATION.has(answer) && (
+                                <p className="text-sm text-muted-foreground">
+                                  {explanation ?? "No explanation provided."}
+                                </p>
                               )}
-                            >
-                              {QUESTIONNAIRE_ANSWER_LABELS[answer]}
-                            </span>
+                            </>
                           ) : (
                             <span className="text-xs text-muted-foreground">Not answered</span>
                           )}

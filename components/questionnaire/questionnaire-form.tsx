@@ -18,7 +18,11 @@ import {
   QUESTIONNAIRE_CATEGORIES,
   QUESTIONNAIRE_EVIDENCE_TYPES,
   QUESTIONNAIRE_QUESTIONS,
+  ANSWERS_REQUIRING_EXPLANATION,
+  buildStoredResponses,
   evidenceTypeLabel,
+  getResponseAnswer,
+  getResponseExplanation,
   type QuestionnaireAnswer,
   type QuestionnaireEvidenceItem,
   type QuestionnaireEvidenceType,
@@ -51,6 +55,35 @@ function draftKey(token: string) {
   return `questionnaire-draft:${token}`;
 }
 
+type DraftPayload = {
+  answers: Record<string, QuestionnaireAnswer>;
+  explanations: Record<string, string>;
+};
+
+function parseDraft(raw: string): DraftPayload {
+  const parsed = JSON.parse(raw) as unknown;
+  if (parsed && typeof parsed === "object" && "answers" in parsed) {
+    const draft = parsed as DraftPayload;
+    return {
+      answers: draft.answers ?? {},
+      explanations: draft.explanations ?? {},
+    };
+  }
+
+  // Legacy flat answer map
+  const answers: Record<string, QuestionnaireAnswer> = {};
+  const explanations: Record<string, string> = {};
+  if (parsed && typeof parsed === "object") {
+    for (const [id, value] of Object.entries(parsed as Record<string, unknown>)) {
+      const answer = getResponseAnswer(value);
+      if (answer) answers[id] = answer;
+      const explanation = getResponseExplanation(value);
+      if (explanation) explanations[id] = explanation;
+    }
+  }
+  return { answers, explanations };
+}
+
 function newEvidenceDraft(type: QuestionnaireEvidenceType = "iso27001"): DraftEvidence {
   return {
     id: crypto.randomUUID(),
@@ -67,7 +100,8 @@ export function QuestionnaireForm({
   shouldMarkInProgress = false,
   riskScore,
 }: QuestionnaireFormProps) {
-  const [responses, setResponses] = useState<Record<string, QuestionnaireAnswer>>({});
+  const [answers, setAnswers] = useState<Record<string, QuestionnaireAnswer>>({});
+  const [explanations, setExplanations] = useState<Record<string, string>>({});
   const [evidenceDrafts, setEvidenceDrafts] = useState<DraftEvidence[]>([]);
   const [draftLoaded, setDraftLoaded] = useState(false);
   const [isSubmitting, startTransition] = useTransition();
@@ -90,7 +124,11 @@ export function QuestionnaireForm({
     }
     try {
       const saved = window.localStorage.getItem(draftKey(token));
-      if (saved) setResponses(JSON.parse(saved));
+      if (saved) {
+        const draft = parseDraft(saved);
+        setAnswers(draft.answers);
+        setExplanations(draft.explanations);
+      }
     } catch {
       window.localStorage.removeItem(draftKey(token));
     }
@@ -99,8 +137,11 @@ export function QuestionnaireForm({
 
   useEffect(() => {
     if (!draftLoaded || submitted) return;
-    window.localStorage.setItem(draftKey(token), JSON.stringify(responses));
-  }, [draftLoaded, responses, submitted, token]);
+    window.localStorage.setItem(
+      draftKey(token),
+      JSON.stringify({ answers, explanations } satisfies DraftPayload)
+    );
+  }, [draftLoaded, answers, explanations, submitted, token]);
 
   const questionsByCategory = useMemo(() => {
     return QUESTIONNAIRE_CATEGORIES.map((category) => ({
@@ -109,11 +150,29 @@ export function QuestionnaireForm({
     }));
   }, []);
 
-  const answeredCount = QUESTIONNAIRE_QUESTIONS.filter((q) => responses[q.id]).length;
-  const allAnswered = answeredCount === QUESTIONNAIRE_QUESTIONS.length;
+  const answeredCount = QUESTIONNAIRE_QUESTIONS.filter((q) => answers[q.id]).length;
+  const explanationsComplete = QUESTIONNAIRE_QUESTIONS.every((q) => {
+    const answer = answers[q.id];
+    if (!answer || !ANSWERS_REQUIRING_EXPLANATION.has(answer)) return true;
+    return Boolean(explanations[q.id]?.trim());
+  });
+  const allAnswered = answeredCount === QUESTIONNAIRE_QUESTIONS.length && explanationsComplete;
 
   function handleAnswer(questionId: string, answer: QuestionnaireAnswer) {
-    setResponses((prev) => ({ ...prev, [questionId]: answer }));
+    setAnswers((prev) => ({ ...prev, [questionId]: answer }));
+    if (!ANSWERS_REQUIRING_EXPLANATION.has(answer)) {
+      setExplanations((prev) => {
+        if (!(questionId in prev)) return prev;
+        const next = { ...prev };
+        delete next[questionId];
+        return next;
+      });
+    }
+    setError(null);
+  }
+
+  function handleExplanation(questionId: string, value: string) {
+    setExplanations((prev) => ({ ...prev, [questionId]: value }));
     setError(null);
   }
 
@@ -185,6 +244,7 @@ export function QuestionnaireForm({
     startTransition(async () => {
       try {
         const evidence = await uploadEvidence();
+        const responses = buildStoredResponses(answers, explanations);
         const result = await submitQuestionnaire(token, responses, evidence);
         if (!result.ok) {
           setError(result.error);
@@ -226,7 +286,8 @@ export function QuestionnaireForm({
         <h1 className="text-2xl font-semibold">{vendorName}</h1>
         <p className="text-sm text-muted-foreground">
           Please answer all {QUESTIONNAIRE_QUESTIONS.length} questions. Select Yes, Partial, No,
-          or N/A for each control area. Your answers are saved in this browser until you submit.
+          or N/A for each control area. Partial and N/A answers require a short explanation. Your
+          answers are saved in this browser until you submit.
         </p>
         <p className="text-sm text-muted-foreground">
           Progress: {answeredCount}/{QUESTIONNAIRE_QUESTIONS.length}
@@ -237,7 +298,12 @@ export function QuestionnaireForm({
         <section key={category} className="space-y-4">
           <h2 className="text-lg font-semibold">{category}</h2>
           <div className="space-y-5">
-            {questions.map((question, index) => (
+            {questions.map((question, index) => {
+              const selected = answers[question.id];
+              const needsExplanation =
+                selected !== undefined && ANSWERS_REQUIRING_EXPLANATION.has(selected);
+
+              return (
               <div key={question.id} className="rounded-lg border border-border/80 bg-white p-4">
                 <Label className="mb-3 block text-sm leading-relaxed">
                   {index + 1}. {question.text}
@@ -247,11 +313,11 @@ export function QuestionnaireForm({
                     <button
                       key={option.value}
                       type="button"
-                      aria-pressed={responses[question.id] === option.value}
+                      aria-pressed={selected === option.value}
                       onClick={() => handleAnswer(question.id, option.value)}
                       className={cn(
                         "rounded-md border px-3 py-1.5 text-sm transition-colors",
-                        responses[question.id] === option.value
+                        selected === option.value
                           ? "border-neutral-900 bg-neutral-900 text-white"
                           : "border-border bg-background hover:bg-muted/50"
                       )}
@@ -260,8 +326,30 @@ export function QuestionnaireForm({
                     </button>
                   ))}
                 </div>
+                {needsExplanation && selected && (
+                  <div className="mt-3 space-y-2">
+                    <Label htmlFor={`answer-explanation-${question.id}`}>
+                      Explanation for {QUESTIONNAIRE_ANSWER_LABELS[selected]}{" "}
+                      <span className="font-normal text-muted-foreground">(required)</span>
+                    </Label>
+                    <textarea
+                      id={`answer-explanation-${question.id}`}
+                      value={explanations[question.id] ?? ""}
+                      onChange={(e) => handleExplanation(question.id, e.target.value)}
+                      rows={3}
+                      placeholder={
+                        selected === "partial"
+                          ? "Describe what is partially in place and what remains outstanding…"
+                          : "Explain why this control is not applicable…"
+                      }
+                      className="flex min-h-[72px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      required
+                    />
+                  </div>
+                )}
               </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       ))}
@@ -361,7 +449,9 @@ export function QuestionnaireForm({
           {error ??
             (allAnswered
               ? "All questions answered. You may submit the questionnaire."
-              : "Please answer every question before submitting.")}
+              : answeredCount === QUESTIONNAIRE_QUESTIONS.length && !explanationsComplete
+                ? "Please explain each Partial and N/A answer before submitting."
+                : "Please answer every question before submitting.")}
         </p>
         <Button type="submit" disabled={isSubmitting || !allAnswered}>
           {isSubmitting ? "Submitting..." : "Submit questionnaire"}

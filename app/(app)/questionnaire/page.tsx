@@ -22,7 +22,8 @@ export default function QuestionnairePage() {
           </p>
           <p className="text-sm text-muted-foreground">
             Security score: Yes = 100, Partial = 50, No = 0, N/A excluded, averaged out of 100.
-            A higher score means stronger controls and lower residual risk.
+            A higher score means stronger controls and lower residual risk. Partial and N/A answers
+            require an explanation from the vendor.
           </p>
         </CardHeader>
         <CardContent>

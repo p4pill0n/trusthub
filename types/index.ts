@@ -62,7 +62,8 @@ export interface Assessment {
   risk_score: number | null;
   assessor_notes: string | null;
   questionnaire_token: string | null;
-  responses: Record<string, string> | null;
+  /** Flat answer string, or `{ answer, explanation? }` for Partial / N/A answers. */
+  responses: Record<string, string | { answer: string; explanation?: string | null }> | null;
   evidence?: AssessmentEvidenceItem[] | null;
   user_id?: string | null;
   vendors?: Pick<Vendor, "name" | "contact_email" | "status"> | null;

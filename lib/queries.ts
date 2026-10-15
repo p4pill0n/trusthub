@@ -16,7 +16,7 @@ import type {
 } from "@/types";
 import { RISK_COLORS } from "./utils";
 import { applyPolicyToVendor, applyPolicyToVendors, withPolicyDefaults } from "./policy";
-import { differenceInDays, parseISO, startOfDay, subDays } from "date-fns";
+import { differenceInDays, format, parseISO, startOfDay, subDays } from "date-fns";
 
 export async function getTprmPolicy(): Promise<TprmPolicy> {
   const { data, error } = await supabase
@@ -401,4 +401,37 @@ export async function getExperts(): Promise<Expert[]> {
 
   if (error) throw error;
   return (data as Expert[]) ?? [];
+}
+
+export type DailyViewerCount = {
+  date: string;
+  viewers: number;
+};
+
+/** Viewers per day for the last `days` calendar days (including today). */
+export async function getDailyViewerCounts(days = 30): Promise<DailyViewerCount[]> {
+  const today = startOfDay(new Date());
+  const from = subDays(today, Math.max(days - 1, 0));
+  const fromIso = format(from, "yyyy-MM-dd");
+
+  const { data, error } = await supabase
+    .from("app_daily_viewers")
+    .select("viewed_on")
+    .gte("viewed_on", fromIso)
+    .order("viewed_on", { ascending: true });
+
+  if (error) throw error;
+
+  const counts = new Map<string, number>();
+  for (const row of data ?? []) {
+    const date = String(row.viewed_on).slice(0, 10);
+    counts.set(date, (counts.get(date) ?? 0) + 1);
+  }
+
+  const series: DailyViewerCount[] = [];
+  for (let i = 0; i < days; i++) {
+    const date = format(subDays(today, days - 1 - i), "yyyy-MM-dd");
+    series.push({ date, viewers: counts.get(date) ?? 0 });
+  }
+  return series;
 }

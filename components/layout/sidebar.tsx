@@ -17,6 +17,7 @@ import {
   ListChecks,
   Users,
   FileQuestion,
+  BarChart2,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -53,9 +54,9 @@ const navSections: NavSection[] = [
   {
     title: "Cyber Risk",
     items: [
-      { href: "/incidents", label: "Security Incidents", icon: ShieldAlert },
       { href: "/bitsight", label: "BitSight Ratings", icon: BarChart3 },
       { href: "/interconnections", label: "Interconnections", icon: GitBranch },
+      { href: "/incidents", label: "Security Incidents", icon: ShieldAlert },
       {
         href: "https://cisowatch.vercel.app/breach",
         label: "CISO Watch",
@@ -70,6 +71,7 @@ const navSections: NavSection[] = [
       { href: "/policy", label: "Policy", icon: ScrollText },
       { href: "/questionnaire", label: "Questionnaire", icon: FileQuestion },
       { href: "/experts", label: "Experts", icon: Users },
+      { href: "/usage", label: "Usage", icon: BarChart2 },
     ],
   },
 ];

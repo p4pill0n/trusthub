@@ -59,19 +59,85 @@ const ANSWER_SCORES: Record<Exclude<QuestionnaireAnswer, "na">, number> = {
 
 const VALID_ANSWERS = new Set<string>(Object.keys(QUESTIONNAIRE_ANSWER_LABELS));
 
+/** Answers that require a written explanation from the vendor. */
+export const ANSWERS_REQUIRING_EXPLANATION = new Set<QuestionnaireAnswer>(["partial", "na"]);
+
+/** Stored per question: legacy bare answer string, or object with optional explanation. */
+export type StoredQuestionnaireResponse =
+  | QuestionnaireAnswer
+  | { answer: QuestionnaireAnswer; explanation?: string | null };
+
+export type StoredQuestionnaireResponses = Record<string, StoredQuestionnaireResponse>;
+
+export function getResponseAnswer(value: unknown): QuestionnaireAnswer | null {
+  if (typeof value === "string" && VALID_ANSWERS.has(value)) {
+    return value as QuestionnaireAnswer;
+  }
+  if (
+    value &&
+    typeof value === "object" &&
+    "answer" in value &&
+    typeof (value as { answer: unknown }).answer === "string" &&
+    VALID_ANSWERS.has((value as { answer: string }).answer)
+  ) {
+    return (value as { answer: QuestionnaireAnswer }).answer;
+  }
+  return null;
+}
+
+export function getResponseExplanation(value: unknown): string | null {
+  if (!value || typeof value !== "object" || !("explanation" in value)) return null;
+  const explanation = (value as { explanation?: unknown }).explanation;
+  if (typeof explanation !== "string") return null;
+  const trimmed = explanation.trim();
+  return trimmed || null;
+}
+
 export function isCompleteResponseSet(
   responses: Record<string, unknown> | null | undefined
-): responses is Record<string, QuestionnaireAnswer> {
+): responses is StoredQuestionnaireResponses {
+  if (!responses) return false;
+  return QUESTIONNAIRE_QUESTIONS.every((q) => getResponseAnswer(responses[q.id]) !== null);
+}
+
+/** Partial and N/A answers must include a non-empty explanation. */
+export function hasRequiredAnswerExplanations(
+  responses: Record<string, unknown> | null | undefined
+): boolean {
   if (!responses) return false;
   return QUESTIONNAIRE_QUESTIONS.every((q) => {
-    const answer = responses[q.id];
-    return typeof answer === "string" && VALID_ANSWERS.has(answer);
+    const answer = getResponseAnswer(responses[q.id]);
+    if (!answer || !ANSWERS_REQUIRING_EXPLANATION.has(answer)) return true;
+    return Boolean(getResponseExplanation(responses[q.id]));
   });
 }
 
-export function calculateSecurityScore(responses: Record<string, QuestionnaireAnswer>): number {
-  const scores = QUESTIONNAIRE_QUESTIONS.map((q) => responses[q.id])
-    .filter((answer): answer is Exclude<QuestionnaireAnswer, "na"> => answer !== undefined && answer !== "na")
+/** @deprecated Use hasRequiredAnswerExplanations */
+export const hasRequiredPartialExplanations = hasRequiredAnswerExplanations;
+
+export function buildStoredResponses(
+  answers: Record<string, QuestionnaireAnswer>,
+  explanations: Record<string, string> = {}
+): StoredQuestionnaireResponses {
+  const stored: StoredQuestionnaireResponses = {};
+  for (const question of QUESTIONNAIRE_QUESTIONS) {
+    const answer = answers[question.id];
+    if (!answer) continue;
+    if (ANSWERS_REQUIRING_EXPLANATION.has(answer)) {
+      const explanation = explanations[question.id]?.trim() || null;
+      stored[question.id] = { answer, explanation };
+    } else {
+      stored[question.id] = answer;
+    }
+  }
+  return stored;
+}
+
+export function calculateSecurityScore(
+  responses: Record<string, QuestionnaireAnswer> | StoredQuestionnaireResponses
+): number {
+  const scores = QUESTIONNAIRE_QUESTIONS.map((q) => getResponseAnswer(responses[q.id]))
+    .filter((answer): answer is Exclude<QuestionnaireAnswer, "na"> => answer !== null && answer !== "na")
     .map((answer) => ANSWER_SCORES[answer]);
 
   if (scores.length === 0) return 0;

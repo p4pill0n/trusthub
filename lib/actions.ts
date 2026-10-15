@@ -7,11 +7,12 @@ import { supabase } from "@/lib/supabase";
 import {
   calculateSecurityScore,
   evidenceTypeLabel,
+  hasRequiredAnswerExplanations,
   isCompleteResponseSet,
   QUESTIONNAIRE_EVIDENCE_TYPES,
-  type QuestionnaireAnswer,
   type QuestionnaireEvidenceItem,
   type QuestionnaireEvidenceType,
+  type StoredQuestionnaireResponses,
 } from "@/lib/questionnaire";
 import { computeNextReviewDate, deriveResidualRisk, validatePolicyInput } from "@/lib/policy";
 import { getTprmPolicy, getVendorActivity, getVendorById, getExperts } from "@/lib/queries";
@@ -312,11 +313,14 @@ export async function startQuestionnaire(token: string) {
 
 export async function submitQuestionnaire(
   token: string,
-  responses: Record<string, QuestionnaireAnswer>,
+  responses: StoredQuestionnaireResponses,
   evidence: QuestionnaireEvidenceItem[] = []
 ) {
   if (!isCompleteResponseSet(responses)) {
     return fail("Please answer every question before submitting.");
+  }
+  if (!hasRequiredAnswerExplanations(responses)) {
+    return fail("Please explain each Partial and N/A answer before submitting.");
   }
 
   const { data: assessment, error: lookupError } = await supabase
@@ -775,6 +779,25 @@ export async function updateIncident(id: string, input: IncidentInput) {
   if (!data?.length) return fail(NOT_SAVED);
 
   revalidateApp();
+  return { ok: true as const };
+}
+
+// ---------------------------------------------------------------------------
+// Usage / viewers
+// ---------------------------------------------------------------------------
+
+export async function recordDailyViewer(viewerKey: string) {
+  const key = viewerKey.trim().slice(0, 80);
+  if (!key) return { ok: true as const };
+
+  const viewedOn = todayIsoDate();
+  const { error } = await supabase.from("app_daily_viewers").upsert(
+    { viewed_on: viewedOn, viewer_key: key },
+    { onConflict: "viewed_on,viewer_key", ignoreDuplicates: true }
+  );
+
+  // Non-blocking for the UI: tracking must not surface as a user-facing failure.
+  if (error) return fail(error.message);
   return { ok: true as const };
 }
 
